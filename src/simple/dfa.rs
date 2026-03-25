@@ -95,6 +95,17 @@ impl SimpleDFA {
         })
     }
 
+    // converts DFA into a matrix M[state][input] = next_state
+    pub fn to_matrix(&self) -> Vec<Vec<Option<SimpleDFAState>>> {
+        self.states()
+            .map(|s| {
+                self.alphabet()
+                    .map(|a| self.transition(s, &a))
+                    .collect::<Vec<Option<SimpleDFAState>>>()
+            })
+            .collect()
+    }
+
     fn completed(&self) -> Self {
         if self.alphabet.is_empty() {
             return self.clone();

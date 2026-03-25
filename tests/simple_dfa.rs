@@ -257,3 +257,35 @@ fn dfa_minimize_reduces_and_preserves_even_len_language() {
         assert_eq!(accepts_dfa(&min, &w), len % 2 == 0);
     }
 }
+
+#[test]
+fn dfa_to_matrix_incomplete_single_symbol() {
+    // 0 --a--> 1 ; 1 has no 'a' transition
+    let dfa = SimpleDFA::try_new(2, 0, [0], ['a'], [(0usize, 'a', 1usize)]).unwrap();
+    let m = dfa.to_matrix();
+
+    assert_eq!(m.len(), 2);
+    assert_eq!(m[0].len(), 1);
+
+    assert_eq!(m[0][0], Some(1));
+    assert_eq!(m[1][0], None);
+}
+
+#[test]
+fn dfa_to_matrix_complete_single_symbol() {
+    // 0 --a--> 1 ; 1 has no 'a' transition.
+    // After completion, both missing moves go to the sink state 2.
+    let dfa = SimpleDFA::try_new(2, 0, [0], ['a'], [(0usize, 'a', 1usize)]).unwrap();
+    let dfa_c = dfa.complete();
+    let m = dfa_c.to_matrix();
+
+    assert_eq!(m.len(), 3);
+    assert_eq!(m[0].len(), 1);
+
+    // From state 0 on 'a' -> 1
+    assert_eq!(m[0][0], Some(1));
+    // From state 1 on 'a' -> sink (2)
+    assert_eq!(m[1][0], Some(2));
+    // Sink loops to itself on 'a'
+    assert_eq!(m[2][0], Some(2));
+}
