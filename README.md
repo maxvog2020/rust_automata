@@ -28,6 +28,7 @@ The main emphasis is to keep the public trait layer free of ε-transitions.
 High-level operations (typically provided as trait methods):
 - Determinization (`to_dfa`) for NFAs
 - Boolean/structural operations: `union`, `intersection`, `difference`, `concatenate`, `star`
+- N-ary operations: `union_all`, `intersect_all`, `concatenate_all`
 - Closure operations: `reverse`, `trimmed`, `accessible`, `co_accessible`
 - DFA completion and complement: `complete`, `complement` (requires a total DFA pipeline)
 - Brzozowski minimization (`minimize`)

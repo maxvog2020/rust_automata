@@ -9,7 +9,7 @@ use crate::general::NonDeterministicAutomaton;
 /// together with determinization.
 pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton {
     /// Deterministic representation obtained by determinization.
-    type CorrespondingDFA: DeterministicFiniteAutomaton<State = Self::State, Input = Self::Input>;
+    type CorrespondingDFA: DeterministicFiniteAutomaton<State = Self::State, Input = Self::Input, CorrespondingNFA = Self>;
 
     /// Determinize this NFA into a DFA (subset construction).
     fn to_dfa(&self) -> Self::CorrespondingDFA;
@@ -48,5 +48,38 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     /// Whether the recognized language is empty.
     fn is_empty_language(&self) -> bool {
         !self.reachable_states().iter().any(|&s| self.is_accepting_state(s))
+    }
+
+    /// Language union across many NFAs.
+    ///
+    /// Computes `L(a0) ∪ L(a1) ∪ ...` for every automaton produced by `automata`.
+    ///
+    /// Returns `None` if the iterator is empty.
+    fn union_all(automata: impl IntoIterator<Item = Self>) -> Option<Self>
+        where Self: Sized
+    {
+        automata.into_iter().reduce(|a, b| a.union(&b))
+    }
+    
+    /// Concatenation across many NFAs.
+    ///
+    /// Computes `L(a0) · L(a1) · ...` in iteration order.
+    ///
+    /// Returns `None` if the iterator is empty.
+    fn concatenate_all(automata: impl IntoIterator<Item = Self>) -> Option<Self> 
+        where Self: Sized 
+    {
+        automata.into_iter().reduce(|a, b| a.concatenate(&b))
+    }
+    
+    /// Language intersection across many NFAs.
+    ///
+    /// Computes `L(a0) ∩ L(a1) ∩ ...` for every automaton produced by `automata`.
+    ///
+    /// Returns `None` if the iterator is empty.
+    fn intersect_all(automata: impl IntoIterator<Item = Self>) -> Option<Self> 
+        where Self: Sized 
+    {
+        automata.into_iter().reduce(|a, b| a.intersection(&b))
     }
 }
