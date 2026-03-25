@@ -7,23 +7,6 @@ pub trait NonDeterministicAutomaton: Automaton {
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a;
     fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a;
 
-    // Do we need this?
-    // 
-    // fn accepts(&self, word: &[Self::Input]) -> bool {
-    //     let mut current: HashSet<Self::State> = self.initial_states().collect();
-    //     for a in word {
-    //         let mut next = HashSet::new();
-    //         for &s in &current {
-    //             next.extend(self.successors(s, a));
-    //         }
-    //         current = next;
-    //         if current.is_empty() {
-    //             return false;
-    //         }
-    //     }
-    //     current.iter().any(|&s| self.is_accepting_state(s))
-    // }
-
     fn reachable_states(&self) -> HashSet<Self::State> {
         let mut reachable = HashSet::new();
         let mut queue = VecDeque::new();

@@ -4,8 +4,10 @@ use crate::general::deterministic::DeterministicAutomaton;
 
 // No complex operations on purpose, convert to NFA first
 pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton {
-    fn to_nfa<'a>(&'a self) -> impl NonDeterministicFiniteAutomaton + 'a;
+    type CorrespondingNFA: NonDeterministicFiniteAutomaton<State = Self::State, Input = Self::Input>;
+    
+    fn to_nfa(&self) -> Self::CorrespondingNFA;
 
-    fn minimize<'a>(&'a self) -> impl DeterministicFiniteAutomaton + 'a;
-    fn complete<'a>(&'a self) -> impl DeterministicFiniteAutomaton + 'a;
+    fn minimize<'a>(&'a self) -> Self;
+    fn complete<'a>(&'a self) -> Self;
 }

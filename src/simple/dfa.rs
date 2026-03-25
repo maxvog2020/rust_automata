@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use crate::general::automaton::Automaton;
 use crate::general::deterministic::DeterministicAutomaton;
 
@@ -202,15 +201,17 @@ impl DeterministicAutomaton for SimpleDFA {
 }
 
 impl DeterministicFiniteAutomaton for SimpleDFA {
-    fn to_nfa(&self) -> impl NonDeterministicFiniteAutomaton {
+    type CorrespondingNFA = SimpleNFA;
+
+    fn to_nfa(&self) -> SimpleNFA {
         self.to_simple_nfa_copy()
     }
 
-    fn complete(&self) -> impl DeterministicFiniteAutomaton {
+    fn complete(&self) -> Self {
         self.complete_copy()
     }
 
-    fn minimize(&self) -> impl DeterministicFiniteAutomaton {
+    fn minimize(&self) -> Self {
         self.minimize_copy()
     }
 }

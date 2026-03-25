@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
 use crate::finite::automaton::FiniteAutomaton;
-use crate::finite::deterministic::DeterministicFiniteAutomaton;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use crate::general::automaton::Automaton;
 use crate::general::nondeterministic::NonDeterministicAutomaton;
@@ -258,47 +257,49 @@ impl NonDeterministicAutomaton for SimpleNFA {
 }
 
 impl NonDeterministicFiniteAutomaton for SimpleNFA {
-    fn to_dfa(&self) -> impl DeterministicFiniteAutomaton {
+    type CorrespondingDFA = SimpleDFA;
+    
+    fn to_dfa(&self) -> SimpleDFA {
         self.to_simple_dfa_owned()
     }
 
-    fn union(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    fn union(&self, other: &Self) -> Self {
         self.union_nfa(other)
     }
 
-    fn difference(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    fn difference(&self, other: &Self) -> Self {
         self.difference_nfa(other)
     }
 
-    fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    fn concatenate(&self, other: &Self) -> Self {
         self.concat_nfa(other)
     }
 
-    fn intersection(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    fn intersection(&self, other: &Self) -> Self {
         self.intersect_nfa(other)
     }
 
-    fn star(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn star(&self) -> Self {
         self.star_nfa()
     }
 
-    fn reverse(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn reverse(&self) -> Self {
         self.reverse_nfa()
     }
 
-    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn trimmed(&self) -> Self {
         self.trimmed_nfa()
     }
 
-    fn complement(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn complement(&self) -> Self {
         self.complement_nfa()
     }
 
-    fn accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn accessible(&self) -> Self {
         self.accessible_nfa()
     }
 
-    fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+    fn co_accessible(&self) -> Self {
         self.coaccessible_nfa()
     }
 
