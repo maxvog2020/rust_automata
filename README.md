@@ -11,6 +11,9 @@ algorithms live in the `finite` module and require enumerating states and
 input symbols (so they work with finite-state/finite-alphabet automata).
 The public trait layer does not include ε-transitions.
 
+This crate is not affiliated with the unrelated crate on crates.io named
+`automata` (https://crates.io/crates/automata).
+
 ## What it does
 
 The library provides:
