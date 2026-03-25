@@ -12,10 +12,10 @@ use super::state::SimpleDFAState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleDFA {
-    pub(super) initial: SimpleDFAState,
-    pub(super) accepting: HashSet<SimpleDFAState>,
-    pub(super) alphabet: HashSet<char>,
-    pub(super) transitions: Vec<HashMap<char, SimpleDFAState>>,
+    initial: SimpleDFAState,
+    accepting: HashSet<SimpleDFAState>,
+    alphabet: HashSet<char>,
+    transitions: Vec<HashMap<char, SimpleDFAState>>,
 }
 
 impl SimpleDFA {
@@ -162,23 +162,23 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
     type CorrespondingNFA = SimpleNFA;
 
     fn to_nfa(&self) -> SimpleNFA {
-        let transitions = self
+        let edges: Vec<(usize, char, usize)> = self
             .transitions
-            .iter()
-            .map(|transition| {
+            .iter().enumerate()
+            .flat_map(|(q, transition)| {
                 transition
                     .iter()
-                    .map(|(&a, &p)| (a, HashSet::from([p])))
-                    .collect()
+                    .map(move |(&a, &p)| (q, a, p))
             })
             .collect();
 
-        SimpleNFA {
-            initial: HashSet::from([self.initial]),
-            accepting: self.accepting.clone(),
-            alphabet: self.alphabet.clone(),
-            transitions,
-        }
+        SimpleNFA::new_unchecked(
+            self.transitions.len(),
+            [self.initial],
+            self.accepting.iter().copied(),
+            self.alphabet.iter().copied(),
+            edges,
+        )
     }
 
     fn complete(&self) -> Self {

@@ -13,10 +13,10 @@ use super::state::SimpleNFAState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleNFA {
-    pub(super) initial: HashSet<SimpleNFAState>,
-    pub(super) accepting: HashSet<SimpleNFAState>,
-    pub(super) alphabet: HashSet<char>,
-    pub(super) transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
+    initial: HashSet<SimpleNFAState>,
+    accepting: HashSet<SimpleNFAState>,
+    alphabet: HashSet<char>,
+    transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
 }
 
 impl SimpleNFA {
