@@ -8,6 +8,6 @@ pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton
     
     fn to_nfa(&self) -> Self::CorrespondingNFA;
 
-    fn minimize<'a>(&'a self) -> Self;
-    fn complete<'a>(&'a self) -> Self;
+    fn minimize(&self) -> Self;
+    fn complete(&self) -> Self;
 }

@@ -1,6 +1,7 @@
 #[path = "common/mod.rs"]
 mod common;
 
+use automata::finite::deterministic::DeterministicFiniteAutomaton;
 use automata::general::automaton::Automaton;
 use automata::general::deterministic::DeterministicAutomaton;
 use automata::simple::SimpleDFA;
@@ -182,7 +183,7 @@ fn dfa_incomplete_len1_accepts_len_4() {
 #[test]
 fn dfa_complete_preserves_incomplete_len1_accepts_len_0() {
     let dfa = dfa_incomplete_len1_only();
-    let dfa_c = dfa.complete_copy();
+    let dfa_c = dfa.complete();
     let a = dfa_c.alphabet().next().unwrap();
     let w = word_repeat(a, 0);
     assert!(!accepts_dfa(&dfa_c, &w));
@@ -191,7 +192,7 @@ fn dfa_complete_preserves_incomplete_len1_accepts_len_0() {
 #[test]
 fn dfa_complete_preserves_incomplete_len1_accepts_len_1() {
     let dfa = dfa_incomplete_len1_only();
-    let dfa_c = dfa.complete_copy();
+    let dfa_c = dfa.complete();
     let a = dfa_c.alphabet().next().unwrap();
     let w = word_repeat(a, 1);
     assert!(accepts_dfa(&dfa_c, &w));
@@ -200,7 +201,7 @@ fn dfa_complete_preserves_incomplete_len1_accepts_len_1() {
 #[test]
 fn dfa_complete_preserves_incomplete_len1_accepts_len_2() {
     let dfa = dfa_incomplete_len1_only();
-    let dfa_c = dfa.complete_copy();
+    let dfa_c = dfa.complete();
     let a = dfa_c.alphabet().next().unwrap();
     let w = word_repeat(a, 2);
     assert!(!accepts_dfa(&dfa_c, &w));
@@ -209,7 +210,7 @@ fn dfa_complete_preserves_incomplete_len1_accepts_len_2() {
 #[test]
 fn dfa_complete_preserves_incomplete_len1_accepts_len_3() {
     let dfa = dfa_incomplete_len1_only();
-    let dfa_c = dfa.complete_copy();
+    let dfa_c = dfa.complete();
     let a = dfa_c.alphabet().next().unwrap();
     let w = word_repeat(a, 3);
     assert!(!accepts_dfa(&dfa_c, &w));
@@ -218,7 +219,7 @@ fn dfa_complete_preserves_incomplete_len1_accepts_len_3() {
 #[test]
 fn dfa_complete_preserves_incomplete_len1_accepts_len_4() {
     let dfa = dfa_incomplete_len1_only();
-    let dfa_c = dfa.complete_copy();
+    let dfa_c = dfa.complete();
     let a = dfa_c.alphabet().next().unwrap();
     let w = word_repeat(a, 4);
     assert!(!accepts_dfa(&dfa_c, &w));
@@ -227,7 +228,7 @@ fn dfa_complete_preserves_incomplete_len1_accepts_len_4() {
 #[test]
 fn dfa_to_nfa_preserves_even_len_language() {
     let dfa = dfa_even_len();
-    let nfa = dfa.to_simple_nfa_copy();
+    let nfa = dfa.to_nfa();
     let a = nfa.alphabet().next().unwrap();
     for len in 0..10 {
         let expect = len % 2 == 0;
@@ -247,7 +248,7 @@ fn dfa_minimize_reduces_and_preserves_even_len_language() {
     ];
     let dfa = SimpleDFA::try_new(4, 0, [0, 1], alphabet, edges).unwrap();
 
-    let min = dfa.minimize_copy();
+    let min = dfa.minimize();
     assert_eq!(min.states().count(), 2);
     let a = min.alphabet().next().unwrap();
 

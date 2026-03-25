@@ -1,8 +1,10 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
 use crate::finite::automaton::FiniteAutomaton;
+use crate::finite::deterministic::DeterministicFiniteAutomaton;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use crate::general::automaton::Automaton;
+use crate::general::deterministic::DeterministicAutomaton;
 use crate::general::nondeterministic::NonDeterministicAutomaton;
 
 use super::dfa::SimpleDFA;
@@ -11,10 +13,10 @@ use super::state::SimpleNFAState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleNFA {
-    pub(crate) initial: HashSet<SimpleNFAState>,
-    pub(crate) accepting: HashSet<SimpleNFAState>,
-    pub(crate) alphabet: HashSet<char>,
-    pub(crate) transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
+    pub(super) initial: HashSet<SimpleNFAState>,
+    pub(super) accepting: HashSet<SimpleNFAState>,
+    pub(super) alphabet: HashSet<char>,
+    pub(super) transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
 }
 
 impl SimpleNFA {
@@ -86,7 +88,7 @@ impl SimpleNFA {
         })
     }
 
-    pub(crate) fn reversed(&self) -> SimpleNFA {
+    fn reversed(&self) -> SimpleNFA {
         let n = self.transitions.len();
         let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); n];
         for q in 0..n {
@@ -104,11 +106,7 @@ impl SimpleNFA {
         }
     }
 
-    pub fn to_simple_dfa_owned(&self) -> SimpleDFA {
-        self.clone().to_simple_dfa()
-    }
-
-    pub(crate) fn to_simple_dfa(&self) -> SimpleDFA {
+    fn to_simple_dfa(&self) -> SimpleDFA {
         let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
         alphabet_vec.sort_unstable();
         let start: BTreeSet<SimpleNFAState> = self.initial.iter().copied().collect();
@@ -260,60 +258,10 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     type CorrespondingDFA = SimpleDFA;
     
     fn to_dfa(&self) -> SimpleDFA {
-        self.to_simple_dfa_owned()
+        self.to_simple_dfa()
     }
 
     fn union(&self, other: &Self) -> Self {
-        self.union_nfa(other)
-    }
-
-    fn difference(&self, other: &Self) -> Self {
-        self.difference_nfa(other)
-    }
-
-    fn concatenate(&self, other: &Self) -> Self {
-        self.concat_nfa(other)
-    }
-
-    fn intersection(&self, other: &Self) -> Self {
-        self.intersect_nfa(other)
-    }
-
-    fn star(&self) -> Self {
-        self.star_nfa()
-    }
-
-    fn reverse(&self) -> Self {
-        self.reverse_nfa()
-    }
-
-    fn trimmed(&self) -> Self {
-        self.trimmed_nfa()
-    }
-
-    fn complement(&self) -> Self {
-        self.complement_nfa()
-    }
-
-    fn accessible(&self) -> Self {
-        self.accessible_nfa()
-    }
-
-    fn co_accessible(&self) -> Self {
-        self.coaccessible_nfa()
-    }
-
-    fn is_subset_of(&self, other: &Self) -> bool {
-        self.difference_inner(other).is_empty_language()
-    }
-
-    fn is_equivalent_to(&self, other: &Self) -> bool {
-        self.is_subset_of(other) && other.is_subset_of(self)
-    }
-}
-
-impl SimpleNFA {
-    pub fn union_nfa(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
         let ab: HashSet<char> = self
@@ -339,7 +287,11 @@ impl SimpleNFA {
         }
     }
 
-    pub fn concat_nfa(&self, other: &Self) -> Self {
+    fn difference(&self, other: &Self) -> Self {
+        self.difference_inner(other)
+    }
+
+    fn concatenate(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
         let ab: HashSet<char> = self
@@ -375,23 +327,19 @@ impl SimpleNFA {
         }
     }
 
-    pub fn intersect_nfa(&self, other: &Self) -> Self {
+    fn intersection(&self, other: &Self) -> Self {
         self.intersection_inner(other)
     }
 
-    pub fn complement_nfa(&self) -> Self {
-        self.complement_inner()
+    fn star(&self) -> Self {
+        self.star_nfa()
     }
 
-    pub fn difference_nfa(&self, other: &Self) -> Self {
-        self.difference_inner(other)
+    fn reverse(&self) -> Self {
+        self.reversed()
     }
 
-    pub fn reverse_nfa(&self) -> Self {
-        self.clone().reversed()
-    }
-
-    pub fn trimmed_nfa(&self) -> Self {
+    fn trimmed(&self) -> Self {
         self.restrict_states(
             &self
                 .reachable_from_initial()
@@ -401,14 +349,28 @@ impl SimpleNFA {
         )
     }
 
-    pub fn accessible_nfa(&self) -> Self {
+    fn complement(&self) -> Self {
+        self.complement_inner()
+    }
+
+    fn accessible(&self) -> Self {
         self.restrict_states(&self.reachable_from_initial())
     }
 
-    pub fn coaccessible_nfa(&self) -> Self {
+    fn co_accessible(&self) -> Self {
         self.restrict_states(&self.co_reachable())
     }
 
+    fn is_subset_of(&self, other: &Self) -> bool {
+        self.difference_inner(other).is_empty_language()
+    }
+
+    fn is_equivalent_to(&self, other: &Self) -> bool {
+        self.is_subset_of(other) && other.is_subset_of(self)
+    }
+}
+
+impl SimpleNFA {
     pub fn star_nfa(&self) -> SimpleNFA {
         let n = self.transitions.len();
         let new_n = n + 1;
@@ -455,8 +417,26 @@ impl SimpleNFA {
     }
 
     fn complement_inner(&self) -> SimpleNFA {
-        let d = self.to_simple_dfa();
-        d.completed().complement_total().as_simple_nfa()
+        let d = self.to_dfa().complete();
+        let accepting: HashSet<SimpleNFAState> = d
+            .states()
+            .filter(|&q| !d.is_accepting_state(q))
+            .collect();
+        let mut edges = Vec::new();
+        for q in d.states() {
+            for a in d.alphabet() {
+                if let Some(p) = d.transition(q, &a) {
+                    edges.push((q, a, p));
+                }
+            }
+        }
+        SimpleNFA::new_unchecked(
+            d.states().count(),
+            [d.initial_state()],
+            accepting,
+            d.alphabet(),
+            edges,
+        )
     }
 
     fn difference_inner(&self, other: &Self) -> SimpleNFA {

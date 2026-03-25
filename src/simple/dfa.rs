@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
+use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use crate::general::automaton::Automaton;
 use crate::general::deterministic::DeterministicAutomaton;
 
@@ -11,10 +12,10 @@ use super::state::SimpleDFAState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleDFA {
-    pub(crate) initial: SimpleDFAState,
-    pub(crate) accepting: HashSet<SimpleDFAState>,
-    pub(crate) alphabet: HashSet<char>,
-    pub(crate) transitions: Vec<HashMap<char, SimpleDFAState>>,
+    pub(super) initial: SimpleDFAState,
+    pub(super) accepting: HashSet<SimpleDFAState>,
+    pub(super) alphabet: HashSet<char>,
+    pub(super) transitions: Vec<HashMap<char, SimpleDFAState>>,
 }
 
 impl SimpleDFA {
@@ -94,7 +95,7 @@ impl SimpleDFA {
         })
     }
 
-    pub(crate) fn completed(&self) -> Self {
+    fn completed(&self) -> Self {
         if self.alphabet.is_empty() {
             return self.clone();
         }
@@ -118,49 +119,6 @@ impl SimpleDFA {
         }
     }
 
-    pub(crate) fn complement_total(&self) -> Self {
-        let n = self.transitions.len();
-        let accepting = (0..n).filter(|q| !self.accepting.contains(q)).collect();
-        Self {
-            initial: self.initial,
-            accepting,
-            alphabet: self.alphabet.clone(),
-            transitions: self.transitions.clone(),
-        }
-    }
-
-    pub fn complete_copy(&self) -> Self {
-        self.completed()
-    }
-
-    pub fn minimize_copy(&self) -> Self {
-        self.as_simple_nfa()
-            .reversed()
-            .to_simple_dfa()
-            .as_simple_nfa()
-            .reversed()
-            .to_simple_dfa()
-    }
-
-    pub fn to_simple_nfa_copy(&self) -> SimpleNFA {
-        self.as_simple_nfa()
-    }
-
-    pub(crate) fn as_simple_nfa(&self) -> SimpleNFA {
-        let transitions = self.transitions.iter().map(|transition| {
-            transition
-                .iter()
-                .map(|(&a, &p)| (a, HashSet::from([p])))
-                .collect()
-        }).collect();
-
-        SimpleNFA {
-            initial: HashSet::from([self.initial]),
-            accepting: self.accepting.clone(),
-            alphabet: self.alphabet.clone(),
-            transitions,
-        }
-    }
 }
 
 impl Automaton for SimpleDFA {
@@ -204,14 +162,30 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
     type CorrespondingNFA = SimpleNFA;
 
     fn to_nfa(&self) -> SimpleNFA {
-        self.to_simple_nfa_copy()
+        let transitions = self
+            .transitions
+            .iter()
+            .map(|transition| {
+                transition
+                    .iter()
+                    .map(|(&a, &p)| (a, HashSet::from([p])))
+                    .collect()
+            })
+            .collect();
+
+        SimpleNFA {
+            initial: HashSet::from([self.initial]),
+            accepting: self.accepting.clone(),
+            alphabet: self.alphabet.clone(),
+            transitions,
+        }
     }
 
     fn complete(&self) -> Self {
-        self.complete_copy()
+        self.completed()
     }
 
     fn minimize(&self) -> Self {
-        self.minimize_copy()
+        self.to_nfa().reverse().to_dfa().to_nfa().reverse().to_dfa()
     }
 }

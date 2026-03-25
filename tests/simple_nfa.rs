@@ -3,6 +3,8 @@ mod common;
 
 use std::collections::HashSet;
 
+use automata::finite::deterministic::DeterministicFiniteAutomaton;
+use automata::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use automata::general::automaton::Automaton;
 use automata::simple::SimpleNFA;
 
@@ -179,7 +181,7 @@ fn nfa_odd_len_accepts_len_9() {
 #[test]
 fn nfa_complement_even_accepts_len_0() {
     let even = nfa_even_len();
-    let comp = even.complement_nfa();
+    let comp = even.complement();
     let a = comp.alphabet().next().unwrap();
     let w = word_repeat(a, 0);
     assert!(!accepts_nfa(&comp, &w));
@@ -188,7 +190,7 @@ fn nfa_complement_even_accepts_len_0() {
 #[test]
 fn nfa_complement_even_accepts_len_1() {
     let even = nfa_even_len();
-    let comp = even.complement_nfa();
+    let comp = even.complement();
     let a = comp.alphabet().next().unwrap();
     let w = word_repeat(a, 1);
     assert!(accepts_nfa(&comp, &w));
@@ -197,7 +199,7 @@ fn nfa_complement_even_accepts_len_1() {
 #[test]
 fn nfa_complement_even_accepts_len_2() {
     let even = nfa_even_len();
-    let comp = even.complement_nfa();
+    let comp = even.complement();
     let a = comp.alphabet().next().unwrap();
     let w = word_repeat(a, 2);
     assert!(!accepts_nfa(&comp, &w));
@@ -206,7 +208,7 @@ fn nfa_complement_even_accepts_len_2() {
 #[test]
 fn nfa_complement_even_accepts_len_3() {
     let even = nfa_even_len();
-    let comp = even.complement_nfa();
+    let comp = even.complement();
     let a = comp.alphabet().next().unwrap();
     let w = word_repeat(a, 3);
     assert!(accepts_nfa(&comp, &w));
@@ -216,7 +218,7 @@ fn nfa_complement_even_accepts_len_3() {
 fn nfa_union_even_odd_accepts_len_0() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let u = even.union_nfa(&odd);
+    let u = even.union(&odd);
     let a = u.alphabet().next().unwrap();
     let w = word_repeat(a, 0);
     assert!(accepts_nfa(&u, &w));
@@ -226,7 +228,7 @@ fn nfa_union_even_odd_accepts_len_0() {
 fn nfa_union_even_odd_accepts_len_1() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let u = even.union_nfa(&odd);
+    let u = even.union(&odd);
     let a = u.alphabet().next().unwrap();
     let w = word_repeat(a, 1);
     assert!(accepts_nfa(&u, &w));
@@ -236,7 +238,7 @@ fn nfa_union_even_odd_accepts_len_1() {
 fn nfa_union_even_odd_accepts_len_2() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let u = even.union_nfa(&odd);
+    let u = even.union(&odd);
     let a = u.alphabet().next().unwrap();
     let w = word_repeat(a, 2);
     assert!(accepts_nfa(&u, &w));
@@ -246,7 +248,7 @@ fn nfa_union_even_odd_accepts_len_2() {
 fn nfa_intersection_even_odd_rejects_len_0() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let i = even.intersect_nfa(&odd);
+    let i = even.intersection(&odd);
     let a = i.alphabet().next().unwrap();
     let w = word_repeat(a, 0);
     assert!(!accepts_nfa(&i, &w));
@@ -256,7 +258,7 @@ fn nfa_intersection_even_odd_rejects_len_0() {
 fn nfa_intersection_even_odd_rejects_len_1() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let i = even.intersect_nfa(&odd);
+    let i = even.intersection(&odd);
     let a = i.alphabet().next().unwrap();
     let w = word_repeat(a, 1);
     assert!(!accepts_nfa(&i, &w));
@@ -266,7 +268,7 @@ fn nfa_intersection_even_odd_rejects_len_1() {
 fn nfa_intersection_even_odd_rejects_len_2() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let i = even.intersect_nfa(&odd);
+    let i = even.intersection(&odd);
     let a = i.alphabet().next().unwrap();
     let w = word_repeat(a, 2);
     assert!(!accepts_nfa(&i, &w));
@@ -275,7 +277,7 @@ fn nfa_intersection_even_odd_rejects_len_2() {
 #[test]
 fn nfa_star_odd_accepts_len_0() {
     let odd = nfa_odd_len();
-    let s = odd.star_nfa();
+    let s = odd.star();
     let a = s.alphabet().next().unwrap();
     let w = word_repeat(a, 0);
     assert!(accepts_nfa(&s, &w));
@@ -284,7 +286,7 @@ fn nfa_star_odd_accepts_len_0() {
 #[test]
 fn nfa_star_odd_accepts_len_2() {
     let odd = nfa_odd_len();
-    let s = odd.star_nfa();
+    let s = odd.star();
     let a = s.alphabet().next().unwrap();
     let w = word_repeat(a, 2);
     assert!(accepts_nfa(&s, &w));
@@ -294,7 +296,7 @@ fn nfa_star_odd_accepts_len_2() {
 fn nfa_concat_even_odd_accepts_len_1() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let c = even.concat_nfa(&odd);
+    let c = even.concatenate(&odd);
     let a = c.alphabet().next().unwrap();
     let w = word_repeat(a, 1);
     assert!(accepts_nfa(&c, &w));
@@ -304,7 +306,7 @@ fn nfa_concat_even_odd_accepts_len_1() {
 fn nfa_concat_even_odd_accepts_len_3() {
     let even = nfa_even_len();
     let odd = nfa_odd_len();
-    let c = even.concat_nfa(&odd);
+    let c = even.concatenate(&odd);
     let a = c.alphabet().next().unwrap();
     let w = word_repeat(a, 3);
     assert!(accepts_nfa(&c, &w));
@@ -350,7 +352,7 @@ fn complex_literal_reverse_rejects_forward_word() {
 fn complex_union_forward_and_reverse_accepts_both() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let n = nfa_literal(&w).union_nfa(&nfa_literal(&r));
+    let n = nfa_literal(&w).union(&nfa_literal(&r));
     assert!(accepts_nfa(&n, &w));
     assert!(accepts_nfa(&n, &r));
 }
@@ -359,8 +361,8 @@ fn complex_union_forward_and_reverse_accepts_both() {
 fn complex_union_then_reverse_swaps_membership() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let n = nfa_literal(&w).union_nfa(&nfa_literal(&r));
-    let rev = n.reverse_nfa();
+    let n = nfa_literal(&w).union(&nfa_literal(&r));
+    let rev = n.reverse();
     assert!(accepts_nfa(&rev, &w));
     assert!(accepts_nfa(&rev, &r));
 }
@@ -369,7 +371,7 @@ fn complex_union_then_reverse_swaps_membership() {
 fn complex_double_reverse_restores_singleton_language() {
     let w = chars("abaaacc");
     let n = nfa_literal(&w);
-    let n2 = n.reverse_nfa().reverse_nfa();
+    let n2 = n.reverse().reverse();
     assert!(accepts_nfa(&n2, &w));
     assert!(!accepts_nfa(&n2, &chars("abaaaca")));
 }
@@ -378,7 +380,7 @@ fn complex_double_reverse_restores_singleton_language() {
 fn complex_concat_forward_then_reverse_is_palindrome_pair() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let c = nfa_literal(&w).concat_nfa(&nfa_literal(&r));
+    let c = nfa_literal(&w).concatenate(&nfa_literal(&r));
     let mut wr = w.clone();
     wr.extend(r.iter().copied());
     assert!(accepts_nfa(&c, &wr));
@@ -389,8 +391,8 @@ fn complex_concat_forward_then_reverse_is_palindrome_pair() {
 fn complex_star_of_union_allows_iteration() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let base = nfa_literal(&w).union_nfa(&nfa_literal(&r));
-    let s = base.star_nfa();
+    let base = nfa_literal(&w).union(&nfa_literal(&r));
+    let s = base.star();
     assert!(accepts_nfa(&s, &[]));
     assert!(accepts_nfa(&s, &w));
     assert!(accepts_nfa(&s, &r));
@@ -404,11 +406,11 @@ fn complex_nested_reverse_union_star_chain() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
     let chain = nfa_literal(&w)
-        .reverse_nfa()
-        .union_nfa(&nfa_literal(&r).reverse_nfa())
-        .star_nfa()
-        .reverse_nfa()
-        .union_nfa(&nfa_literal(&w));
+        .reverse()
+        .union(&nfa_literal(&r).reverse())
+        .star()
+        .reverse()
+        .union(&nfa_literal(&w));
     assert!(accepts_nfa(&chain, &w));
     assert!(accepts_nfa(&chain, &r));
 }
@@ -417,8 +419,8 @@ fn complex_nested_reverse_union_star_chain() {
 fn complex_intersection_union_with_literal_is_singleton() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let u = nfa_literal(&w).union_nfa(&nfa_literal(&r));
-    let i = nfa_literal(&w).intersect_nfa(&u);
+    let u = nfa_literal(&w).union(&nfa_literal(&r));
+    let i = nfa_literal(&w).intersection(&u);
     assert!(accepts_nfa(&i, &w));
     assert!(!accepts_nfa(&i, &r));
 }
@@ -427,8 +429,8 @@ fn complex_intersection_union_with_literal_is_singleton() {
 fn complex_difference_removes_reverse_from_union() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let u = nfa_literal(&w).union_nfa(&nfa_literal(&r));
-    let d = u.difference_nfa(&nfa_literal(&r));
+    let u = nfa_literal(&w).union(&nfa_literal(&r));
+    let d = u.difference(&nfa_literal(&r));
     assert!(accepts_nfa(&d, &w));
     assert!(!accepts_nfa(&d, &r));
 }
@@ -437,7 +439,7 @@ fn complex_difference_removes_reverse_from_union() {
 fn complex_trimmed_literal_same_language() {
     let w = chars("abaaacc");
     let n = nfa_literal(&w);
-    let t = n.trimmed_nfa();
+    let t = n.trimmed();
     assert!(accepts_nfa(&t, &w));
     assert!(!accepts_nfa(&t, &chars("x")));
 }
@@ -446,8 +448,8 @@ fn complex_trimmed_literal_same_language() {
 fn complex_accessible_coaccessible_idempotent_on_literal() {
     let w = chars("abaaacc");
     let n = nfa_literal(&w);
-    let a = n.accessible_nfa();
-    let c = n.coaccessible_nfa();
+    let a = n.accessible();
+    let c = n.co_accessible();
     assert!(accepts_nfa(&a, &w));
     assert!(accepts_nfa(&c, &w));
 }
@@ -456,7 +458,7 @@ fn complex_accessible_coaccessible_idempotent_on_literal() {
 fn complex_literal_to_dfa_accepts_same_word() {
     let w = chars("abaaacc");
     let nfa = nfa_literal(&w);
-    let dfa = nfa.to_simple_dfa_owned();
+    let dfa = nfa.to_dfa();
     assert!(accepts_dfa(&dfa, &w));
 }
 
@@ -464,7 +466,7 @@ fn complex_literal_to_dfa_accepts_same_word() {
 fn complex_literal_to_dfa_rejects_reverse() {
     let w = chars("abaaacc");
     let r = reverse_word(&w);
-    let dfa = nfa_literal(&w).to_simple_dfa_owned();
+    let dfa = nfa_literal(&w).to_dfa();
     assert!(!accepts_dfa(&dfa, &r));
 }
 
@@ -474,8 +476,8 @@ fn complex_union_is_symmetric_on_samples() {
     let r = reverse_word(&w);
     let lw = nfa_literal(&w);
     let lr = nfa_literal(&r);
-    let a = lw.union_nfa(&lr);
-    let b = lr.union_nfa(&lw);
+    let a = lw.union(&lr);
+    let b = lr.union(&lw);
     for sample in [&w, &r] {
         assert_eq!(accepts_nfa(&a, sample), accepts_nfa(&b, sample));
     }
@@ -487,9 +489,9 @@ fn complex_star_star_accepts_same_samples_as_star() {
     let w = chars("ab");
     let forward = nfa_literal(&w);
     let revw = nfa_literal(&reverse_word(&w));
-    let u = forward.union_nfa(&revw);
-    let once = u.star_nfa();
-    let twice = once.star_nfa();
+    let u = forward.union(&revw);
+    let once = u.star();
+    let twice = once.star();
     let samples = [
         chars(""),
         w.clone(),
@@ -505,11 +507,11 @@ fn complex_star_star_accepts_same_samples_as_star() {
 fn complex_reverse_concat_relates_to_concat_reverse() {
     let u = chars("ab");
     let v = chars("cd");
-    let c_fwd = nfa_literal(&u).concat_nfa(&nfa_literal(&v));
+    let c_fwd = nfa_literal(&u).concatenate(&nfa_literal(&v));
     let ru = reverse_word(&u);
     let rv = reverse_word(&v);
-    let c_rev_inner = nfa_literal(&rv).concat_nfa(&nfa_literal(&ru));
-    let c = c_fwd.reverse_nfa();
+    let c_rev_inner = nfa_literal(&rv).concatenate(&nfa_literal(&ru));
+    let c = c_fwd.reverse();
     assert_eq!(
         accepts_nfa(&c, &chars("dcba")),
         accepts_nfa(&c_rev_inner, &chars("dcba"))
@@ -519,7 +521,7 @@ fn complex_reverse_concat_relates_to_concat_reverse() {
 #[test]
 fn complex_minimize_via_to_dfa_preserves_abaaacc() {
     let w = chars("abaaacc");
-    let dfa = nfa_literal(&w).to_simple_dfa_owned().minimize_copy();
+    let dfa = nfa_literal(&w).to_dfa().minimize();
     assert!(accepts_dfa(&dfa, &w));
 }
 
@@ -527,11 +529,11 @@ fn complex_minimize_via_to_dfa_preserves_abaaacc() {
 fn complex_even_union_balanced_brackets_style_star() {
     let open = chars("(");
     let close = chars(")");
-    let pair = nfa_literal(&open).concat_nfa(&nfa_literal(&close));
-    let s = pair.star_nfa();
+    let pair = nfa_literal(&open).concatenate(&nfa_literal(&close));
+    let s = pair.star();
     assert!(accepts_nfa(&s, &[]));
     assert!(accepts_nfa(&s, &chars("()")));
     assert!(accepts_nfa(&s, &chars("()()")));
-    let rev = s.reverse_nfa();
+    let rev = s.reverse();
     assert!(accepts_nfa(&rev, &chars(")(")));
 }
