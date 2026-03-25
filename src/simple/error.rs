@@ -1,0 +1,64 @@
+use core::fmt;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SimpleBuildError {
+    InitialOutOfRange {
+        initial: usize,
+        state_count: usize,
+    },
+    StateOutOfRange {
+        state: usize,
+        state_count: usize,
+    },
+    TransitionFromOutOfRange {
+        from: usize,
+        state_count: usize,
+    },
+    TransitionToOutOfRange {
+        to: usize,
+        state_count: usize,
+    },
+    SymbolNotInAlphabet(char),
+    DuplicateDeterministicTransition {
+        state: usize,
+        symbol: char,
+    },
+}
+
+impl fmt::Display for SimpleBuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SimpleBuildError::InitialOutOfRange {
+                initial,
+                state_count,
+            } => write!(
+                f,
+                "initial state {initial} is out of range for state_count {state_count}"
+            ),
+            SimpleBuildError::StateOutOfRange {
+                state,
+                state_count,
+            } => write!(
+                f,
+                "state {state} is out of range for state_count {state_count}"
+            ),
+            SimpleBuildError::TransitionFromOutOfRange { from, state_count } => write!(
+                f,
+                "transition source {from} is out of range for state_count {state_count}"
+            ),
+            SimpleBuildError::TransitionToOutOfRange { to, state_count } => write!(
+                f,
+                "transition target {to} is out of range for state_count {state_count}"
+            ),
+            SimpleBuildError::SymbolNotInAlphabet(a) => {
+                write!(f, "symbol {a:?} is not in the alphabet")
+            }
+            SimpleBuildError::DuplicateDeterministicTransition { state, symbol } => write!(
+                f,
+                "duplicate transition ({state}, {symbol:?}) for a deterministic automaton"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for SimpleBuildError {}

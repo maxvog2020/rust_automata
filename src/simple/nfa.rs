@@ -7,36 +7,30 @@ use crate::general::automaton::Automaton;
 use crate::general::nondeterministic::NonDeterministicAutomaton;
 
 use super::dfa::SimpleDFA;
+use super::error::SimpleBuildError;
 use super::state::SimpleNFAState;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleNFA {
     pub(crate) initial: HashSet<SimpleNFAState>,
     pub(crate) accepting: HashSet<SimpleNFAState>,
-    pub(crate) alphabet: BTreeSet<char>,
+    pub(crate) alphabet: HashSet<char>,
     pub(crate) transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
 }
 
 impl SimpleNFA {
-    // TODO: remove asserts
-    pub fn new(
+    pub fn new_unchecked(
         state_count: usize,
         initial: impl IntoIterator<Item = SimpleNFAState>,
         accepting: impl IntoIterator<Item = SimpleNFAState>,
         alphabet: impl IntoIterator<Item = char>,
         transitions: impl IntoIterator<Item = (SimpleNFAState, char, SimpleNFAState)>,
     ) -> Self {
-        let alphabet: BTreeSet<char> = alphabet.into_iter().collect();
+        let alphabet: HashSet<char> = alphabet.into_iter().collect();
         let initial: HashSet<_> = initial.into_iter().collect();
         let accepting: HashSet<_> = accepting.into_iter().collect();
-        for &s in initial.union(&accepting) {
-            assert!(s < state_count, "SimpleNFA: state {s} out of range");
-        }
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
-            vec![HashMap::new(); state_count];
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); state_count];
         for (q, a, p) in transitions {
-            assert!(q < state_count && p < state_count);
-            assert!(alphabet.contains(&a));
             rows[q].entry(a).or_default().insert(p);
         }
         Self {
@@ -45,6 +39,52 @@ impl SimpleNFA {
             alphabet,
             transitions: rows,
         }
+    }
+
+    pub fn try_new(
+        state_count: usize,
+        initial: impl IntoIterator<Item = SimpleNFAState>,
+        accepting: impl IntoIterator<Item = SimpleNFAState>,
+        alphabet: impl IntoIterator<Item = char>,
+        transitions: impl IntoIterator<Item = (SimpleNFAState, char, SimpleNFAState)>,
+    ) -> Result<Self, SimpleBuildError> {
+        let alphabet: HashSet<char> = alphabet.into_iter().collect();
+        let initial: HashSet<_> = initial.into_iter().collect();
+        let accepting: HashSet<_> = accepting.into_iter().collect();
+        for &s in initial.union(&accepting) {
+            if s >= state_count {
+                return Err(SimpleBuildError::StateOutOfRange {
+                    state: s,
+                    state_count,
+                });
+            }
+        }
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
+            vec![HashMap::new(); state_count];
+        for (q, a, p) in transitions {
+            if q >= state_count {
+                return Err(SimpleBuildError::TransitionFromOutOfRange {
+                    from: q,
+                    state_count,
+                });
+            }
+            if p >= state_count {
+                return Err(SimpleBuildError::TransitionToOutOfRange {
+                    to: p,
+                    state_count,
+                });
+            }
+            if !alphabet.contains(&a) {
+                return Err(SimpleBuildError::SymbolNotInAlphabet(a));
+            }
+            rows[q].entry(a).or_default().insert(p);
+        }
+        Ok(Self {
+            initial,
+            accepting,
+            alphabet,
+            transitions: rows,
+        })
     }
 
     pub(crate) fn reversed(&self) -> SimpleNFA {
@@ -65,8 +105,9 @@ impl SimpleNFA {
         }
     }
 
-    fn to_simple_dfa(&self) -> SimpleDFA {
-        let alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
+    pub(crate) fn to_simple_dfa(&self) -> SimpleDFA {
+        let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
+        alphabet_vec.sort_unstable();
         let start: BTreeSet<SimpleNFAState> = self.initial.iter().copied().collect();
         let mut subset_to_id: HashMap<BTreeSet<SimpleNFAState>, usize> = HashMap::new();
         let mut queue: VecDeque<BTreeSet<SimpleNFAState>> = VecDeque::new();
@@ -220,7 +261,11 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn union(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         let na = self.transitions.len();
         let nb = other.transitions.len();
-        let ab: BTreeSet<char> = self.alphabet.union(&other.alphabet).cloned().collect();
+        let ab: HashSet<char> = self
+            .alphabet
+            .union(&other.alphabet)
+            .copied()
+            .collect();
         let mut rows = self.transitions.clone();
         rows.resize(na + nb, HashMap::new());
         for q in 0..nb {
@@ -246,7 +291,11 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         let na = self.transitions.len();
         let nb = other.transitions.len();
-        let ab: BTreeSet<char> = self.alphabet.union(&other.alphabet).cloned().collect();
+        let ab: HashSet<char> = self
+            .alphabet
+            .union(&other.alphabet)
+            .copied()
+            .collect();
         let mut rows = self.transitions.clone();
         rows.resize(na + nb, HashMap::new());
         for q in 0..nb {
@@ -280,8 +329,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     }
 
     fn star(&self) -> impl NonDeterministicFiniteAutomaton {
-        // TODO: implement star (without using SimpleDFA inner structure)
-        todo!()
+        self.star_nfa()
     }
 
     fn reverse(&self) -> impl NonDeterministicFiniteAutomaton {
@@ -314,9 +362,54 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
 }
 
 impl SimpleNFA {
+    fn star_nfa(&self) -> SimpleNFA {
+        let n = self.transitions.len();
+        let new_n = n + 1;
+        let shift = |q: usize| q + 1;
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
+            vec![HashMap::new(); new_n];
+
+        for q in 0..n {
+            for (a, tos) in &self.transitions[q] {
+                for &p in tos {
+                    rows[shift(q)].entry(*a).or_default().insert(shift(p));
+                }
+            }
+        }
+
+        for &i in &self.initial {
+            for (a, tos) in &self.transitions[i] {
+                for &p in tos {
+                    rows[0].entry(*a).or_default().insert(shift(p));
+                }
+            }
+        }
+
+        for &f in &self.accepting {
+            let fq = shift(f);
+            for &i in &self.initial {
+                for (a, tos) in &self.transitions[i] {
+                    for &p in tos {
+                        rows[fq].entry(*a).or_default().insert(shift(p));
+                    }
+                }
+            }
+        }
+
+        let mut accepting: HashSet<_> = self.accepting.iter().map(|&f| shift(f)).collect();
+        accepting.insert(0);
+
+        SimpleNFA {
+            initial: HashSet::from([0]),
+            accepting,
+            alphabet: self.alphabet.clone(),
+            transitions: rows,
+        }
+    }
+
     fn complement_inner(&self) -> SimpleNFA {
-        // TODO: implement complement (without using SimpleDFA inner structure)
-        todo!()
+        let d = self.to_simple_dfa();
+        d.completed().complement_total().as_simple_nfa()
     }
 
     fn difference_inner(&self, other: &Self) -> SimpleNFA {
@@ -325,7 +418,13 @@ impl SimpleNFA {
 
     fn restrict_states(&self, keep: &HashSet<SimpleNFAState>) -> SimpleNFA {
         if keep.is_empty() {
-            return SimpleNFA::new(0, [], [], self.alphabet.iter().copied(), []);
+            return SimpleNFA::new_unchecked(
+                0,
+                [],
+                [],
+                self.alphabet.iter().copied(),
+                [],
+            );
         }
         let mut sorted: Vec<_> = keep.iter().copied().collect();
         sorted.sort_unstable();
@@ -353,16 +452,17 @@ impl SimpleNFA {
             .filter_map(|&s| remap.get(&s).copied())
             .collect();
         let ab = self.alphabet.clone();
-        SimpleNFA::new(n, initial, accepting, ab.iter().copied(), edges)
+        SimpleNFA::new_unchecked(n, initial, accepting, ab.iter().copied(), edges)
     }
 
     fn intersection_inner(&self, other: &Self) -> SimpleNFA {
-        let alphabet: BTreeSet<char> = self
+        let alphabet: HashSet<char> = self
             .alphabet
             .intersection(&other.alphabet)
             .copied()
             .collect();
-        let alphabet_vec: Vec<char> = alphabet.iter().copied().collect();
+        let mut alphabet_vec: Vec<char> = alphabet.iter().copied().collect();
+        alphabet_vec.sort_unstable();
         let mut pair_id: HashMap<(SimpleNFAState, SimpleNFAState), usize> = HashMap::new();
         let mut queue: VecDeque<(SimpleNFAState, SimpleNFAState)> = VecDeque::new();
         let mut next_id = 0usize;
@@ -426,6 +526,6 @@ impl SimpleNFA {
             .flat_map(|((q, a), tos)| tos.into_iter().map(move |p| (q, a, p)))
             .collect();
 
-        SimpleNFA::new(n, initial, accepting, alphabet.iter().copied(), edges)
+        SimpleNFA::new_unchecked(n, initial, accepting, alphabet.iter().copied(), edges)
     }
 }

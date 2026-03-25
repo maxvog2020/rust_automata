@@ -6,10 +6,6 @@ use crate::general::deterministic::DeterministicAutomaton;
 pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton {
     fn to_nfa<'a>(&'a self) -> impl NonDeterministicFiniteAutomaton + 'a;
 
+    fn minimize<'a>(&'a self) -> impl DeterministicFiniteAutomaton + 'a;
     fn complete<'a>(&'a self) -> impl DeterministicFiniteAutomaton + 'a;
-
-    // TODO: fix the lifetime error
-    fn minimize<'a>(&'a self) -> impl DeterministicFiniteAutomaton + 'a {
-        self.to_nfa().reverse().to_dfa().to_nfa().reverse().to_dfa()
-    }
 }
