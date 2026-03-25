@@ -1,5 +1,9 @@
 # automata
 
+[![Crates.io](https://img.shields.io/crates/v/automata.svg)](https://crates.io/crates/automata)
+[![Docs.rs](https://docs.rs/automata/badge.svg)](https://docs.rs/automata)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](https://opensource.org/licenses/MIT)
+
 Deterministic and nondeterministic finite-automata algorithms in Rust.
 
 This crate focuses on finite automata operations with a stable, explicit

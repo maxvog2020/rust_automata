@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.85.0"
 
-#description = "TODO"
+description = "Deterministic and nondeterministic finite-automata algorithms in Rust"
 license = "MIT OR Apache-2.0"
 
 readme = "README.md"
-#homepage = "TODO"
-#repository = "TODO"
+homepage = "https://github.com/maxvog2020/rust_automata"
+repository = "https://github.com/maxvog2020/rust_automata"
 
-#keywords = [TODO]
-#categories = [TODO]
+keywords = ["automata", "dfa", "nfa", "formal-languages", "algorithms"]
+categories = ["algorithms"]
 
 [dependencies]
