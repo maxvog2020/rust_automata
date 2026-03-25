@@ -1,3 +1,11 @@
+//! Concrete reference automata implementations.
+//!
+//! The types in this module are intentionally small and explicit:
+//! - [`SimpleDFA`](dfa::SimpleDFA): deterministic transition table with
+//!   `State × Input -> Option<State>`.
+//! - [`SimpleNFA`](nfa::SimpleNFA): nondeterministic transition relation with
+//!   `State × Input -> set of states`.
+
 pub mod dfa;
 pub mod error;
 pub mod nfa;
