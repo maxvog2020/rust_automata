@@ -54,32 +54,43 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     ///
     /// Computes `L(a0) ∪ L(a1) ∪ ...` for every automaton produced by `automata`.
     ///
-    /// Returns `None` if the iterator is empty.
-    fn union_all(automata: impl IntoIterator<Item = Self>) -> Option<Self>
-        where Self: Sized
+    /// Returns `None` if the slice is empty.
+    fn union_all(automata: &[Self]) -> Option<Self>
+        where Self: Clone + Sized
     {
-        automata.into_iter().reduce(|a, b| a.union(&b))
+        clone_reduce(automata, |a, b| a.union(b))
     }
     
     /// Concatenation across many NFAs.
     ///
     /// Computes `L(a0) · L(a1) · ...` in iteration order.
     ///
-    /// Returns `None` if the iterator is empty.
-    fn concatenate_all(automata: impl IntoIterator<Item = Self>) -> Option<Self> 
-        where Self: Sized 
+    /// Returns `None` if the slice is empty.
+    fn concatenate_all(automata: &[Self]) -> Option<Self> 
+        where Self: Clone + Sized 
     {
-        automata.into_iter().reduce(|a, b| a.concatenate(&b))
+        clone_reduce(automata, |a, b| a.concatenate(b))
     }
     
     /// Language intersection across many NFAs.
     ///
     /// Computes `L(a0) ∩ L(a1) ∩ ...` for every automaton produced by `automata`.
     ///
-    /// Returns `None` if the iterator is empty.
-    fn intersect_all(automata: impl IntoIterator<Item = Self>) -> Option<Self> 
-        where Self: Sized 
+    /// Returns `None` if the slice is empty.
+    fn intersect_all(automata: &[Self]) -> Option<Self> 
+        where Self: Clone + Sized 
     {
-        automata.into_iter().reduce(|a, b| a.intersection(&b))
+        clone_reduce(automata, |a, b| a.intersection(b))
     }
 }
+
+fn clone_reduce<'a, T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Option<T> {
+    let mut iter = arr.iter();
+
+    let Some(item) = iter.next() else {
+        return None;
+    };
+
+    Some(iter.fold(item.clone(), |a, b| f(a, &b)))
+}
+
