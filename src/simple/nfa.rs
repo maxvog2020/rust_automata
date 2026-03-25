@@ -1,69 +1,10 @@
-#![allow(refining_impl_trait_reachable)]
-
 use crate::finite::automaton::FiniteAutomaton;
-use crate::finite::deterministic::DeterministicFiniteAutomaton;
 use crate::finite::dot::ToDot;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
 use crate::general::automaton::Automaton;
-use crate::general::deterministic::DeterministicAutomaton;
 use crate::general::nondeterministic::NonDeterministicAutomaton;
 
-pub struct SimpleDFA;
-
 pub struct SimpleNFA;
-
-impl Automaton for SimpleDFA {
-    type State = usize;
-    type Input = char;
-
-    fn states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
-        core::iter::empty() // TODO: SimpleDFA::states
-    }
-
-    fn alphabet<'a>(&'a self) -> impl Iterator<Item = Self::Input> + 'a {
-        core::iter::empty() // TODO: SimpleDFA::alphabet
-    }
-
-    fn is_valid_state(&self, _state: Self::State) -> bool {
-        todo!("SimpleDFA::is_valid_state")
-    }
-
-    fn is_initial_state(&self, _state: Self::State) -> bool {
-        todo!("SimpleDFA::is_initial_state")
-    }
-
-    fn is_accepting_state(&self, _state: Self::State) -> bool {
-        todo!("SimpleDFA::is_accepting_state")
-    }
-}
-
-impl FiniteAutomaton for SimpleDFA {}
-
-impl DeterministicAutomaton for SimpleDFA {
-    fn initial_state(&self) -> Self::State {
-        todo!("SimpleDFA::initial_state")
-    }
-
-    fn transition(&self, _state: Self::State, _input: &Self::Input) -> Option<Self::State> {
-        todo!("SimpleDFA::transition")
-    }
-}
-
-impl DeterministicFiniteAutomaton for SimpleDFA {
-    fn to_nfa(&self) -> SimpleNFA {
-        todo!("SimpleDFA::to_nfa")
-    }
-
-    fn minimize(&self) -> SimpleDFA {
-        todo!("SimpleDFA::minimize")
-    }
-
-    fn complete(&self) -> SimpleDFA {
-        todo!("SimpleDFA::complete")
-    }
-}
-
-impl ToDot for SimpleDFA {}
 
 impl Automaton for SimpleNFA {
     type State = usize;
@@ -103,50 +44,50 @@ impl NonDeterministicAutomaton for SimpleNFA {
 }
 
 impl NonDeterministicFiniteAutomaton for SimpleNFA {
-    fn to_dfa(&self) -> SimpleDFA {
+    fn to_dfa(&self) -> impl crate::finite::deterministic::DeterministicFiniteAutomaton {
         todo!("SimpleNFA::to_dfa")
     }
-
-    fn union(&self, _other: &Self) -> SimpleNFA {
+    
+    fn union(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::union")
     }
-
-    fn difference(&self, _other: &Self) -> SimpleNFA {
+    
+    fn difference(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::difference")
     }
-
-    fn concatenate(&self, _other: &Self) -> SimpleNFA {
+    
+    fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::concatenate")
     }
-
-    fn intersection(&self, _other: &Self) -> SimpleNFA {
+    
+    fn intersection(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::intersection")
     }
-
-    fn star(&self) -> SimpleNFA {
+    
+    fn star(&self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::star")
     }
-
-    fn reverse(&self) -> SimpleNFA {
+    
+    fn reverse(&self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::reverse")
     }
-
-    fn complement(&self) -> SimpleNFA {
-        todo!("SimpleNFA::complement")
-    }
-
-    fn accessible(&self) -> SimpleNFA {
-        todo!("SimpleNFA::accessible")
-    }
-
-    fn co_accessible(&self) -> SimpleNFA {
-        todo!("SimpleNFA::co_accessible")
-    }
-
-    fn trimmed(&self) -> SimpleNFA {
+    
+    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton {
         todo!("SimpleNFA::trimmed")
     }
     
+    fn complement(&self) -> impl NonDeterministicFiniteAutomaton {
+        todo!("SimpleNFA::complement")
+    }
+    
+    fn accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+        todo!("SimpleNFA::accessible")
+    }
+    
+    fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+        todo!("SimpleNFA::co_accessible")
+    }
+
     fn is_subset_of(&self, _other: &Self) -> bool {
         todo!("SimpleNFA::is_subset_of")
     }
