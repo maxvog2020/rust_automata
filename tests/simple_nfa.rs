@@ -3,10 +3,10 @@ mod common;
 
 use std::collections::HashSet;
 
-use automata::finite::DeterministicFiniteAutomaton;
-use automata::finite::NonDeterministicFiniteAutomaton;
-use automata::general::Automaton;
-use automata::simple::SimpleNFA;
+use automata_core::finite::DeterministicFiniteAutomaton;
+use automata_core::finite::NonDeterministicFiniteAutomaton;
+use automata_core::general::Automaton;
+use automata_core::simple::SimpleNFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
 

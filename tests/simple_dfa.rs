@@ -1,10 +1,10 @@
 #[path = "common/mod.rs"]
 mod common;
 
-use automata::finite::DeterministicFiniteAutomaton;
-use automata::general::Automaton;
-use automata::general::DeterministicAutomaton;
-use automata::simple::SimpleDFA;
+use automata_core::finite::DeterministicFiniteAutomaton;
+use automata_core::general::Automaton;
+use automata_core::general::DeterministicAutomaton;
+use automata_core::simple::SimpleDFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
 

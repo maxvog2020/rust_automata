@@ -1,22 +1,22 @@
-//! `automata`: small, explicit finite-automata algorithms in Rust.
+//! `automata_core`: small, explicit automata algorithms in Rust.
 //!
-//! This crate provides core operations over **finite automata** with a clear
-//! trait layer split into:
+//! This crate provides core operations over automata with a clear trait
+//! layer split into:
 //! - [`general`] (generic automaton concepts), and
 //! - [`finite`] (finiteness assumptions + algorithms that rely on them),
 //! - [`simple`] (concrete reference implementations: `SimpleDFA` / `SimpleNFA`).
 //!
-//! The focus is on deterministic and nondeterministic finite automata
-//! constructions **without ε-transitions in the public trait layer**.
+//! The focus is on deterministic and nondeterministic constructions
+//! **without ε-transitions in the public trait layer**.
 //!
 //! # Quick example
 //! Build a DFA for the language “even-length words over `{ 'a' }`” and test
 //! acceptance.
 //!
 //! ```rust
-//! use automata::simple::SimpleDFA;
-//! use automata::general::DeterministicAutomaton;
-//! use automata::finite::DeterministicFiniteAutomaton;
+//! use automata_core::simple::SimpleDFA;
+//! use automata_core::general::DeterministicAutomaton;
+//! use automata_core::finite::DeterministicFiniteAutomaton;
 //!
 //! let alphabet = ['a'];
 //! // 0 = even length, 1 = odd length

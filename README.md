@@ -1,14 +1,15 @@
-# automata
+# automata_core
 
-[![Crates.io](https://img.shields.io/crates/v/automata.svg)](https://crates.io/crates/automata)
-[![Docs.rs](https://docs.rs/automata/badge.svg)](https://docs.rs/automata)
+[![Crates.io](https://img.shields.io/crates/v/automata_core.svg)](https://crates.io/crates/automata_core)
+[![Docs.rs](https://docs.rs/automata_core/badge.svg)](https://docs.rs/automata_core)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](https://opensource.org/licenses/MIT)
 
-Deterministic and nondeterministic finite-automata algorithms in Rust.
+Deterministic and nondeterministic automaton algorithms in Rust.
 
-This crate focuses on finite automata operations with a stable, explicit
-trait-layer API and no ε-transitions in the public trait surface (no regex
-support).
+The crate is built around a generic automaton trait layer (`general`). Some
+algorithms live in the `finite` module and require enumerating states and
+input symbols (so they work with finite-state/finite-alphabet automata).
+The public trait layer does not include ε-transitions.
 
 ## What it does
 
@@ -35,9 +36,9 @@ Debug/interop helpers:
 ## Quick example
 
 ```rust
-use automata::simple::SimpleDFA;
-use automata::finite::deterministic::DeterministicFiniteAutomaton;
-use automata::general::deterministic::DeterministicAutomaton;
+use automata_core::simple::SimpleDFA;
+use automata_core::finite::deterministic::DeterministicFiniteAutomaton;
+use automata_core::general::deterministic::DeterministicAutomaton;
 
 let alphabet = ['a'];
 // 0 = even length, 1 = odd length
