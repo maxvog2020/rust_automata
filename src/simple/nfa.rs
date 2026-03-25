@@ -105,6 +105,10 @@ impl SimpleNFA {
         }
     }
 
+    pub fn to_simple_dfa_owned(&self) -> SimpleDFA {
+        self.clone().to_simple_dfa()
+    }
+
     pub(crate) fn to_simple_dfa(&self) -> SimpleDFA {
         let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
         alphabet_vec.sort_unstable();
@@ -255,10 +259,60 @@ impl NonDeterministicAutomaton for SimpleNFA {
 
 impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn to_dfa(&self) -> impl DeterministicFiniteAutomaton {
-        self.clone().to_simple_dfa()
+        self.to_simple_dfa_owned()
     }
 
     fn union(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+        self.union_nfa(other)
+    }
+
+    fn difference(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+        self.difference_nfa(other)
+    }
+
+    fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+        self.concat_nfa(other)
+    }
+
+    fn intersection(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+        self.intersect_nfa(other)
+    }
+
+    fn star(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.star_nfa()
+    }
+
+    fn reverse(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.reverse_nfa()
+    }
+
+    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.trimmed_nfa()
+    }
+
+    fn complement(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.complement_nfa()
+    }
+
+    fn accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.accessible_nfa()
+    }
+
+    fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+        self.coaccessible_nfa()
+    }
+
+    fn is_subset_of(&self, other: &Self) -> bool {
+        self.difference_inner(other).is_empty_language()
+    }
+
+    fn is_equivalent_to(&self, other: &Self) -> bool {
+        self.is_subset_of(other) && other.is_subset_of(self)
+    }
+}
+
+impl SimpleNFA {
+    pub fn union_nfa(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
         let ab: HashSet<char> = self
@@ -284,11 +338,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
         }
     }
 
-    fn difference(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
-        self.intersection_inner(&other.complement_inner())
-    }
-
-    fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    pub fn concat_nfa(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
         let ab: HashSet<char> = self
@@ -324,45 +374,41 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
         }
     }
 
-    fn intersection(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton {
+    pub fn intersect_nfa(&self, other: &Self) -> Self {
         self.intersection_inner(other)
     }
 
-    fn star(&self) -> impl NonDeterministicFiniteAutomaton {
-        self.star_nfa()
-    }
-
-    fn reverse(&self) -> impl NonDeterministicFiniteAutomaton {
-        self.clone().reversed()
-    }
-
-    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton {
-        self.restrict_states(&self.reachable_from_initial().intersection(&self.co_reachable()).copied().collect())
-    }
-
-    fn complement(&self) -> impl NonDeterministicFiniteAutomaton {
+    pub fn complement_nfa(&self) -> Self {
         self.complement_inner()
     }
 
-    fn accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+    pub fn difference_nfa(&self, other: &Self) -> Self {
+        self.difference_inner(other)
+    }
+
+    pub fn reverse_nfa(&self) -> Self {
+        self.clone().reversed()
+    }
+
+    pub fn trimmed_nfa(&self) -> Self {
+        self.restrict_states(
+            &self
+                .reachable_from_initial()
+                .intersection(&self.co_reachable())
+                .copied()
+                .collect(),
+        )
+    }
+
+    pub fn accessible_nfa(&self) -> Self {
         self.restrict_states(&self.reachable_from_initial())
     }
 
-    fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton {
+    pub fn coaccessible_nfa(&self) -> Self {
         self.restrict_states(&self.co_reachable())
     }
 
-    fn is_subset_of(&self, other: &Self) -> bool {
-        self.difference_inner(other).is_empty_language()
-    }
-
-    fn is_equivalent_to(&self, other: &Self) -> bool {
-        self.is_subset_of(other) && other.is_subset_of(self)
-    }
-}
-
-impl SimpleNFA {
-    fn star_nfa(&self) -> SimpleNFA {
+    pub fn star_nfa(&self) -> SimpleNFA {
         let n = self.transitions.len();
         let new_n = n + 1;
         let shift = |q: usize| q + 1;

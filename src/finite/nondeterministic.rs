@@ -17,7 +17,7 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     fn complement<'a>(&'a self) -> impl NonDeterministicFiniteAutomaton + 'a;
 
     fn accessible<'a>(&'a self) -> impl NonDeterministicFiniteAutomaton + 'a;
-    fn co_accessible<'a>(&'a self) -> impl NonDeterministicFiniteAutomaton + 'a;
+    fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton;
 
     fn is_subset_of(&self, other: &Self) -> bool;
     fn is_equivalent_to(&self, other: &Self) -> bool;

@@ -130,6 +130,23 @@ impl SimpleDFA {
         }
     }
 
+    pub fn complete_copy(&self) -> Self {
+        self.completed()
+    }
+
+    pub fn minimize_copy(&self) -> Self {
+        self.as_simple_nfa()
+            .reversed()
+            .to_simple_dfa()
+            .as_simple_nfa()
+            .reversed()
+            .to_simple_dfa()
+    }
+
+    pub fn to_simple_nfa_copy(&self) -> SimpleNFA {
+        self.as_simple_nfa()
+    }
+
     pub(crate) fn as_simple_nfa(&self) -> SimpleNFA {
         let transitions = self.transitions.iter().map(|transition| {
             transition
@@ -186,19 +203,14 @@ impl DeterministicAutomaton for SimpleDFA {
 
 impl DeterministicFiniteAutomaton for SimpleDFA {
     fn to_nfa(&self) -> impl NonDeterministicFiniteAutomaton {
-        self.as_simple_nfa()
+        self.to_simple_nfa_copy()
     }
 
     fn complete(&self) -> impl DeterministicFiniteAutomaton {
-        self.completed()
+        self.complete_copy()
     }
 
     fn minimize(&self) -> impl DeterministicFiniteAutomaton {
-        self.as_simple_nfa()
-            .reversed()
-            .to_simple_dfa()
-            .as_simple_nfa()
-            .reversed()
-            .to_simple_dfa()
+        self.minimize_copy()
     }
 }
