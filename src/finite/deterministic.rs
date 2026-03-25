@@ -25,13 +25,4 @@ pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton
     /// Make the DFA *total* by adding a sink/trap state for missing
     /// transitions.
     fn complete(&self) -> Self;
-
-    /// Convert many DFAs to NFAs.
-    ///
-    /// Returns an iterator of NFAs corresponding to the input DFAs.
-    fn to_nfa_all(automata: impl IntoIterator<Item = Self>) -> impl IntoIterator<Item = Self::CorrespondingNFA> 
-        where Self: Sized 
-    {
-        automata.into_iter().map(|a| a.to_nfa())
-    }
 }
