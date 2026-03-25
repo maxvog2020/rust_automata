@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::finite::automaton::FiniteAutomaton;
-use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use crate::general::automaton::Automaton;
-use crate::general::deterministic::DeterministicAutomaton;
+use crate::finite::FiniteAutomaton;
+use crate::finite::DeterministicFiniteAutomaton;
+use crate::finite::NonDeterministicFiniteAutomaton;
+use crate::general::Automaton;
+use crate::general::DeterministicAutomaton;
 
 use super::error::SimpleBuildError;
 use super::nfa::SimpleNFA;

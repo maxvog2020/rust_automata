@@ -6,10 +6,10 @@
 //! - [`SimpleNFA`](nfa::SimpleNFA): nondeterministic transition relation with
 //!   `State × Input -> set of states`.
 
-pub mod dfa;
-pub mod error;
-pub mod nfa;
-pub mod state;
+mod dfa;
+mod error;
+mod nfa;
+mod state;
 
 pub use dfa::SimpleDFA;
 pub use error::SimpleBuildError;

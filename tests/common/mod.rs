@@ -1,5 +1,5 @@
-use automata::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use automata::general::deterministic::DeterministicAutomaton;
+use automata::finite::NonDeterministicFiniteAutomaton;
+use automata::general::DeterministicAutomaton;
 use automata::simple::{SimpleDFA, SimpleNFA};
 
 pub fn word_repeat<I: Clone>(sym: I, len: usize) -> Vec<I> {

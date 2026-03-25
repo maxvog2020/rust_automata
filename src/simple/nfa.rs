@@ -1,11 +1,11 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
-use crate::finite::automaton::FiniteAutomaton;
-use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use crate::general::automaton::Automaton;
-use crate::general::deterministic::DeterministicAutomaton;
-use crate::general::nondeterministic::NonDeterministicAutomaton;
+use crate::finite::FiniteAutomaton;
+use crate::finite::DeterministicFiniteAutomaton;
+use crate::finite::NonDeterministicFiniteAutomaton;
+use crate::general::Automaton;
+use crate::general::DeterministicAutomaton;
+use crate::general::NonDeterministicAutomaton;
 
 use super::dfa::SimpleDFA;
 use super::error::SimpleBuildError;

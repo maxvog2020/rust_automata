@@ -1,6 +1,6 @@
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::general::nondeterministic::NonDeterministicAutomaton;
+use crate::general::NonDeterministicAutomaton;
 
 pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton {
     type CorrespondingDFA: DeterministicFiniteAutomaton<State = Self::State, Input = Self::Input>;

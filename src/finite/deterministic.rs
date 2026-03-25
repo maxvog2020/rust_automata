@@ -1,6 +1,6 @@
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use crate::general::deterministic::DeterministicAutomaton;
+use crate::general::DeterministicAutomaton;
 
 // No complex operations on purpose, convert to NFA first
 pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton {

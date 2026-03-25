@@ -1,4 +1,4 @@
-use crate::general::automaton::Automaton;
+use crate::general::Automaton;
 
 // states and alphabet are finite
 pub trait FiniteAutomaton: Automaton {

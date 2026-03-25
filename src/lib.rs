@@ -15,8 +15,8 @@
 //!
 //! ```rust
 //! use automata::simple::SimpleDFA;
-//! use automata::general::deterministic::DeterministicAutomaton;
-//! use automata::finite::deterministic::DeterministicFiniteAutomaton;
+//! use automata::general::DeterministicAutomaton;
+//! use automata::finite::DeterministicFiniteAutomaton;
 //!
 //! let alphabet = ['a'];
 //! // 0 = even length, 1 = odd length
