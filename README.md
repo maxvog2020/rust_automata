@@ -55,6 +55,15 @@ assert!(dfa.accepts(&['a', 'a']));
 - [`finite`](src/finite/): finiteness-bound traits and algorithmic operations
 - [`simple`](src/simple/): `SimpleDFA` / `SimpleNFA` concrete implementations
 
+## WIP / status
+
+This library is work-in-progress. While the core constructions and trait
+APIs are in place, test coverage is still incomplete and some debug helpers
+are not finished yet.
+
+Known TODOs:
+- `FiniteAutomaton::to_dot` (Graphviz DOT export) is not implemented yet.
+
 ## License
 
 MIT OR Apache-2.0
