@@ -5,26 +5,19 @@ use crate::general::nondeterministic::NonDeterministicAutomaton;
 pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton {
     fn to_dfa(&self) -> impl DeterministicFiniteAutomaton;
 
-    // TODO: default bodies once implementations exist (same `impl Trait` limitation as DFA).
     fn union(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton;
-
     fn difference(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton;
-
     fn concatenate(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton;
-
     fn intersection(&self, other: &Self) -> impl NonDeterministicFiniteAutomaton;
 
     fn star(&self) -> impl NonDeterministicFiniteAutomaton;
-
     fn reverse(&self) -> impl NonDeterministicFiniteAutomaton;
 
+    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton;
     fn complement(&self) -> impl NonDeterministicFiniteAutomaton;
 
     fn accessible(&self) -> impl NonDeterministicFiniteAutomaton;
-
     fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton;
-
-    fn trimmed(&self) -> impl NonDeterministicFiniteAutomaton;
 
     fn is_empty_language(&self) -> bool {
         todo!("NonDeterministicFiniteAutomaton::is_empty_language")

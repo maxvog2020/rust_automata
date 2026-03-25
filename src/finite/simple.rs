@@ -58,18 +58,6 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
         todo!("SimpleDFA::minimize")
     }
 
-    fn accessible(&self) -> SimpleDFA {
-        todo!("SimpleDFA::accessible")
-    }
-
-    fn co_accessible(&self) -> SimpleDFA {
-        todo!("SimpleDFA::co_accessible")
-    }
-
-    fn trimmed(&self) -> SimpleDFA {
-        todo!("SimpleDFA::trimmed")
-    }
-
     fn complete(&self) -> SimpleDFA {
         todo!("SimpleDFA::complete")
     }
@@ -109,11 +97,7 @@ impl NonDeterministicAutomaton for SimpleNFA {
         core::iter::empty() // TODO: SimpleNFA::initial_states
     }
 
-    fn successors<'a>(
-        &'a self,
-        _state: Self::State,
-        _input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a {
+    fn successors<'a>(&'a self, _state: Self::State, _input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a {
         core::iter::empty() // TODO: SimpleNFA::successors
     }
 }

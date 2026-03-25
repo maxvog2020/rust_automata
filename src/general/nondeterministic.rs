@@ -5,16 +5,7 @@ use crate::general::deterministic::DeterministicAutomaton;
 
 pub trait NonDeterministicAutomaton: Automaton {
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a;
-
-    fn successors<'a>(
-        &'a self,
-        state: Self::State,
-        input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a;
-
-    fn accepts(&self, _word: &[Self::Input]) -> bool {
-        todo!("NonDeterministicAutomaton::accepts")
-    }
+    fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a;
 
     fn reachable_states(&self) -> HashSet<Self::State> {
         todo!("NonDeterministicAutomaton::reachable_states")
@@ -34,11 +25,7 @@ impl<T: DeterministicAutomaton> NonDeterministicAutomaton for T {
         core::iter::once(self.initial_state())
     }
 
-    fn successors<'a>(
-        &'a self,
-        state: Self::State,
-        input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a {
+    fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a {
         self.transition(state, input).into_iter()
     }
 }
