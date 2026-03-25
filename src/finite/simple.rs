@@ -146,6 +146,14 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn trimmed(&self) -> SimpleNFA {
         todo!("SimpleNFA::trimmed")
     }
+    
+    fn is_subset_of(&self, _other: &Self) -> bool {
+        todo!("SimpleNFA::is_subset_of")
+    }
+    
+    fn is_equivalent_to(&self, _other: &Self) -> bool {
+        todo!("SimpleNFA::is_equivalent_to")
+    }
 }
 
 impl ToDot for SimpleNFA {}

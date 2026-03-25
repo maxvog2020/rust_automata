@@ -19,11 +19,10 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     fn accessible(&self) -> impl NonDeterministicFiniteAutomaton;
     fn co_accessible(&self) -> impl NonDeterministicFiniteAutomaton;
 
-    fn is_empty_language(&self) -> bool {
-        todo!("NonDeterministicFiniteAutomaton::is_empty_language")
-    }
+    fn is_subset_of(&self, other: &Self) -> bool;
+    fn is_equivalent_to(&self, other: &Self) -> bool;
 
-    fn equivalent(&self, _other: &Self) -> bool {
-        todo!("NonDeterministicFiniteAutomaton::equivalent")
+    fn is_empty_language(&self) -> bool {
+        !self.reachable_states().iter().any(|&s| self.is_accepting_state(s))
     }
 }
