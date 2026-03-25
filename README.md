@@ -2,9 +2,9 @@
 
 Deterministic and nondeterministic finite-automata algorithms in Rust.
 
-This crate is inspired by the “stable, deterministic API surface” approach of
-[`rust_stable_toposort`](https://github.com/maxvog2020/rust_stable_toposort), but
-focused on automata theory (no regex support).
+This crate focuses on finite automata operations with a stable, explicit
+trait-layer API and no ε-transitions in the public trait surface (no regex
+support).
 
 ## What it does
 

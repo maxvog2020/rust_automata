@@ -3,10 +3,26 @@ use std::collections::{HashSet, VecDeque};
 use crate::general::automaton::Automaton;
 use crate::general::deterministic::DeterministicAutomaton;
 
+/// Nondeterministic automaton semantics.
+///
+/// Implementors define:
+/// - a set of initial states via [`NonDeterministicAutomaton::initial_states`]
+/// - a successor relation via [`NonDeterministicAutomaton::successors`]
+///   (state + input symbol -> zero or more next states).
 pub trait NonDeterministicAutomaton: Automaton {
+    /// Iterator over initial states.
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a;
+
+    /// Successors of `state` under `input`.
     fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a;
 
+    /// All states reachable from the initial states.
+    ///
+    /// This helper explores the automaton by iterating successor transitions
+    /// over every symbol in `alphabet()`.
+    ///
+    /// If the automaton (or its alphabet/state space) is infinite, this
+    /// helper may not terminate.
     fn reachable_states(&self) -> HashSet<Self::State> {
         let mut reachable = HashSet::new();
         let mut queue = VecDeque::new();
@@ -32,12 +48,17 @@ pub trait NonDeterministicAutomaton: Automaton {
         reachable
     }
 
+    /// The set of symbols shared with `other`.
     fn common_alphabet(&self, other: &Self) -> HashSet<Self::Input> {
         let alphabet1: HashSet<Self::Input> = self.alphabet().collect();
         let alphabet2: HashSet<Self::Input> = other.alphabet().collect();
         alphabet1.intersection(&alphabet2).cloned().collect()
     }
 
+    /// Helper for co-acceptance compatibility.
+    ///
+    /// Returns the set of states of `self` that may appear as the left component
+    /// of a co-accepting pair reachable over the *common alphabet*.
     fn accepting_states_compatible_with(&self, other: &Self) -> HashSet<Self::State> {
         let mut common = HashSet::new();
         let mut queue = VecDeque::new();

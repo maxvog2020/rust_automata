@@ -10,6 +10,10 @@ use super::error::SimpleBuildError;
 use super::nfa::SimpleNFA;
 use super::state::SimpleDFAState;
 
+/// A small reference implementation of a deterministic finite automaton.
+///
+/// `SimpleDFA` uses a dense state set `[0..state_count)` with transitions
+/// stored as `State × Input -> Option<State>`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleDFA {
     initial: SimpleDFAState,
@@ -19,6 +23,14 @@ pub struct SimpleDFA {
 }
 
 impl SimpleDFA {
+    /// Construct a `SimpleDFA` without validating invariants.
+    ///
+    /// This constructor is intended for internal use and tests. It assumes:
+    /// - `initial < state_count`
+    /// - accepting states are within `0..state_count`
+    /// - all transition endpoints are within range
+    /// - transition symbols belong to `alphabet`
+    /// - at most one transition per `(state, symbol)`
     pub fn new_unchecked(
         state_count: usize,
         initial: SimpleDFAState,
@@ -40,6 +52,9 @@ impl SimpleDFA {
         }
     }
 
+    /// Construct a `SimpleDFA` with validation.
+    ///
+    /// See [`SimpleBuildError`] for possible failures.
     pub fn try_new(
         state_count: usize,
         initial: SimpleDFAState,
@@ -95,7 +110,10 @@ impl SimpleDFA {
         })
     }
 
-    // converts DFA into a matrix M[state][input] = next_state
+    /// Convert this DFA into a dense transition matrix `M[state][input]`.
+    ///
+    /// Each cell contains `Some(next_state)` if the transition exists for the
+    /// symbol, otherwise `None`.
     pub fn to_matrix(&self) -> Vec<Vec<Option<SimpleDFAState>>> {
         self.states()
             .map(|s| {

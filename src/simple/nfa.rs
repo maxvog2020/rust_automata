@@ -11,6 +11,11 @@ use super::dfa::SimpleDFA;
 use super::error::SimpleBuildError;
 use super::state::SimpleNFAState;
 
+/// A small reference implementation of a nondeterministic finite automaton.
+///
+/// `SimpleNFA` uses dense states `[0..state_count)` and stores transitions
+/// as sets:
+/// `State × Input -> HashSet<State>`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleNFA {
     initial: HashSet<SimpleNFAState>,
@@ -20,6 +25,9 @@ pub struct SimpleNFA {
 }
 
 impl SimpleNFA {
+    /// Construct a `SimpleNFA` without validating invariants.
+    ///
+    /// This constructor is intended for internal use and tests.
     pub fn new_unchecked(
         state_count: usize,
         initial: impl IntoIterator<Item = SimpleNFAState>,
@@ -42,6 +50,9 @@ impl SimpleNFA {
         }
     }
 
+    /// Construct a `SimpleNFA` with validation.
+    ///
+    /// See [`SimpleBuildError`] for possible failures.
     pub fn try_new(
         state_count: usize,
         initial: impl IntoIterator<Item = SimpleNFAState>,

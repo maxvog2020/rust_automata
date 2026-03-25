@@ -4,8 +4,8 @@
 //! - [`FiniteAutomaton`](automaton::FiniteAutomaton),
 //! - [`DeterministicFiniteAutomaton`](deterministic::DeterministicFiniteAutomaton),
 //! - [`NonDeterministicFiniteAutomaton`](nondeterministic::NonDeterministicFiniteAutomaton),
-//! plus Graphviz (`.dot`) support via [`FiniteAutomaton::to_dot`](automaton::FiniteAutomaton::to_dot)
-//! and DFA transition matrices via [`DeterministicFiniteAutomaton::to_matrix`](deterministic::DeterministicFiniteAutomaton::to_matrix).
+//! - Graphviz (`.dot`) support via [`FiniteAutomaton::to_dot`](automaton::FiniteAutomaton::to_dot)
+//! - DFA transition matrices via `SimpleDFA::to_matrix` (and similar helpers).
 
 mod automaton;
 mod deterministic;

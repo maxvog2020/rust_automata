@@ -34,11 +34,6 @@
 //!   `minimize`, and Graphviz export (`to_dot`) where supported.
 //! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
 //!
-//! # Links
-//! Inspired by the API / documentation style of
-//! [`rust_stable_toposort`](https://github.com/maxvog2020/rust_stable_toposort), but
-//! implemented for automata theory.
-
 pub mod finite;
 pub mod general;
 pub mod simple;

@@ -1,24 +1,32 @@
 use core::fmt;
 
+/// Error returned when building a `SimpleDFA` or `SimpleNFA`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SimpleBuildError {
+    /// The initial state must satisfy `initial < state_count`.
     InitialOutOfRange {
         initial: usize,
         state_count: usize,
     },
+    /// A state in `accepting` must satisfy `state < state_count`.
     StateOutOfRange {
         state: usize,
         state_count: usize,
     },
+    /// A transition source must satisfy `from < state_count`.
     TransitionFromOutOfRange {
         from: usize,
         state_count: usize,
     },
+    /// A transition target must satisfy `to < state_count`.
     TransitionToOutOfRange {
         to: usize,
         state_count: usize,
     },
+    /// Transition symbol must be part of the declared alphabet.
     SymbolNotInAlphabet(char),
+    /// Deterministic automata must not have duplicate transitions for
+    /// `(state, symbol)`.
     DuplicateDeterministicTransition {
         state: usize,
         symbol: char,
