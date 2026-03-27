@@ -8,6 +8,10 @@ use automata_core::simple::{SimpleBuildError, SimpleDFA};
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
 
+////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////
+
 fn dfa_even_len() -> SimpleDFA {
     let alphabet = ['a'];
     let edges = [(0usize, 'a', 1usize), (1usize, 'a', 0usize)];
@@ -19,6 +23,10 @@ fn dfa_incomplete_len1_only() -> SimpleDFA {
     let edges = [(0usize, 'a', 1usize)];
     SimpleDFA::try_new(2, 0, [1], alphabet, edges).unwrap()
 }
+
+////////////////////////////////////////////////////////////
+// Tests
+////////////////////////////////////////////////////////////
 
 #[test]
 fn dfa_even_len_accepts_len_0() {

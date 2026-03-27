@@ -1,10 +1,11 @@
+use automata_core::finite::{DeterministicFiniteAutomaton, NonDeterministicFiniteAutomaton};
 use automata_core::finite::parsing::{parse_by_longest_match, ParseResult};
-use automata_core::simple::SimpleDFA;
+use automata_core::general::Automaton;
+use automata_core::simple::{SimpleDFA, SimpleNFA};
 
-fn literal_ab_chain() -> SimpleDFA {
-    // 0 --a--> 1 --b--> 2 (2 is accepting)
-    SimpleDFA::try_new(3, 0, [2], ['a', 'b'], [(0, 'a', 1), (1, 'b', 2)]).unwrap()
-}
+////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////
 
 fn parse_consumed(word: &[char], dfa: &SimpleDFA) -> Vec<ParseResult<usize>> {
     parse_by_longest_match(dfa, word).unwrap()
@@ -17,9 +18,75 @@ fn word_bounds(parse: &[ParseResult<usize>]) -> Vec<(usize, usize)> {
         .collect()
 }
 
+fn word_expression_stream(fragment: &str, target_len: usize) -> Vec<char> {
+    let mut v = Vec::with_capacity(target_len);
+    while v.len() < target_len {
+        let take = (target_len - v.len()).min(fragment.len());
+        v.extend(fragment.chars().take(take));
+    }
+    v
+}
+
+fn nfa_singleton(words: &str) -> SimpleNFA {
+    let alphabet = words.chars();
+    let symbols = words.chars();
+    SimpleDFA::try_new_singleton_words(alphabet, symbols).unwrap().to_nfa()
+}
+
+fn nfa_digit() -> SimpleNFA {
+    nfa_singleton("0123456789")
+}
+
+fn nfa_number() -> SimpleNFA {
+    nfa_digit().concatenate(&nfa_digit().star())
+}
+
+fn nfa_space() -> SimpleNFA {
+    nfa_singleton(" ")
+}
+
+fn nfa_operator() -> SimpleNFA {
+    nfa_singleton("+-*/()")
+}
+
+fn dfa_number_operator_space() -> SimpleDFA {
+    let number = nfa_number();
+    let operator = nfa_operator();
+    let space = nfa_space();
+    let nfa = SimpleNFA::union_all(&[number, operator, space]).unwrap();
+    nfa.to_minimized_dfa()
+}
+
+fn dfa_ba_star() -> SimpleDFA {
+    let a = nfa_singleton("a");
+    let a_star = a.star();
+    let b = nfa_singleton("b");
+    let nfa = b.concatenate(&a_star);
+    nfa.to_minimized_dfa()
+}
+
+fn dfa_ca_plus_or_ba_plus() -> SimpleDFA {
+    let a = nfa_singleton("a");
+    let a_plus = a.concatenate(&a.star());
+    let ca_plus = nfa_singleton("c").concatenate(&a_plus.clone());
+    let ba_plus = nfa_singleton("b").concatenate(&a_plus);
+    ca_plus.union(&ba_plus).to_minimized_dfa()
+}
+
+fn dfa_ab_chain() -> SimpleDFA {
+    let a = nfa_singleton("a");
+    let b = nfa_singleton("b");
+    let nfa = a.concatenate(&b);
+    nfa.to_minimized_dfa()
+}
+
+////////////////////////////////////////////////////////////
+// Tests
+////////////////////////////////////////////////////////////
+
 #[test]
 fn parse_empty_word_yields_no_tokens() {
-    let dfa = literal_ab_chain();
+    let dfa = dfa_ab_chain();
     assert_eq!(parse_by_longest_match(&dfa, &[]).unwrap(), vec![]);
 }
 
@@ -39,14 +106,16 @@ fn single_symbol_one_token() {
 
 #[test]
 fn two_letter_word_one_token() {
-    let dfa = literal_ab_chain();
+    let dfa = dfa_ab_chain();
+    let accepting = dfa.accepting_states().collect::<Vec<_>>();
     let word = ['a', 'b'];
     let got = parse_by_longest_match(&dfa, &word).unwrap();
+    assert_eq!(accepting.len(), 1);
     assert_eq!(got.len(), 1);
     assert_eq!(
         got[0],
         ParseResult {
-            state: 2,
+            state: accepting[0],
             position_in_word: 0,
             size: 2,
         }
@@ -55,7 +124,7 @@ fn two_letter_word_one_token() {
 
 #[test]
 fn fails_when_first_symbol_has_no_transition() {
-    let dfa = literal_ab_chain();
+    let dfa = dfa_ab_chain();
     assert!(parse_by_longest_match(&dfa, &['z']).is_none());
 }
 
@@ -69,7 +138,7 @@ fn fails_when_first_token_cannot_end_accepting() {
 #[test]
 fn fails_when_no_pattern_matches_remainder() {
     // "aa" but only 0-a->1-b->2 (need 'b' after first 'a'); second 'a' cannot start a token.
-    let dfa = literal_ab_chain();
+    let dfa = dfa_ab_chain();
     assert!(parse_by_longest_match(&dfa, &['a', 'a']).is_none());
 }
 
@@ -346,4 +415,84 @@ fn parse_singleton_words_with_empty_constructor_symbol_set_only_empty_input() {
     let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], []).unwrap();
     assert_eq!(parse_by_longest_match(&dfa, &[]).unwrap(), vec![]);
     assert!(parse_by_longest_match(&dfa, &['a']).is_none());
+}
+
+#[test]
+fn expression_stream_one_fragment_token_boundaries() {
+    let dfa = dfa_number_operator_space();
+    let word: Vec<char> = "42 + ( 3 * 17 ) - 9 / 2 ".chars().collect();
+    let got = parse_by_longest_match(&dfa, &word).unwrap();
+    let expected_bounds: Vec<(usize, usize)> = vec![
+        (0, 2),
+        (2, 1),
+        (3, 1),
+        (4, 1),
+        (5, 1),
+        (6, 1),
+        (7, 1),
+        (8, 1),
+        (9, 1),
+        (10, 1),
+        (11, 2),
+        (13, 1),
+        (14, 1),
+        (15, 1),
+        (16, 1),
+        (17, 1),
+        (18, 1),
+        (19, 1),
+        (20, 1),
+        (21, 1),
+        (22, 1),
+        (23, 1),
+    ];
+    assert_eq!(word_bounds(&got), expected_bounds);
+    let sum: usize = got.iter().map(|p| p.size).sum();
+    assert_eq!(sum, word.len());
+}
+
+#[test]
+fn expression_stream_1200_chars_full_cover() {
+    let dfa = dfa_number_operator_space();
+    let word = word_expression_stream("42 + ( 3 * 17 ) - 9 / 2 ", 1200);
+    let got = parse_by_longest_match(&dfa, &word).expect("parse");
+    let sum: usize = got.iter().map(|p| p.size).sum();
+    assert_eq!(sum, word.len());
+    assert_eq!(got.first().unwrap().position_in_word, 0);
+    assert_eq!(
+        got.last().unwrap().position_in_word + got.last().unwrap().size,
+        word.len()
+    );
+}
+
+#[test]
+fn ba_star_built_minimizes_to_single_token_on_long_word() {
+    let dfa = dfa_ba_star();
+    let word: Vec<char> = std::iter::once('b').chain(std::iter::repeat_n('a', 1199)).collect();
+    assert_eq!(word.len(), 1200);
+    let got = parse_by_longest_match(&dfa, &word).unwrap();
+    assert_eq!(got.len(), 1);
+    assert_eq!(got[0].position_in_word, 0);
+    assert_eq!(got[0].size, 1200);
+}
+
+#[test]
+fn alternating_ca_ba_blocks_parse_covers_1180_chars() {
+    let dfa = dfa_ca_plus_or_ba_plus();
+    let target_len = 1180;
+    let mut word = Vec::with_capacity(target_len);
+    let blocks: &[&[char]] = &[&['c', 'a', 'a', 'a'], &['b', 'a', 'a', 'a']];
+    let mut i = 0;
+    while word.len() < target_len {
+        for &ch in blocks[i % 2] {
+            if word.len() >= target_len {
+                break;
+            }
+            word.push(ch);
+        }
+        i += 1;
+    }
+    let got = parse_by_longest_match(&dfa, &word).expect("parse");
+    let sum: usize = got.iter().map(|p| p.size).sum();
+    assert_eq!(sum, word.len());
 }

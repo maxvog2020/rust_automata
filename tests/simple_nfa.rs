@@ -3,12 +3,15 @@ mod common;
 
 use std::collections::HashSet;
 
-use automata_core::finite::DeterministicFiniteAutomaton;
 use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::general::Automaton;
 use automata_core::simple::SimpleNFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
+
+////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////
 
 fn chars(s: &str) -> Vec<char> {
     s.chars().collect()
@@ -37,6 +40,10 @@ fn nfa_literal(word: &[char]) -> SimpleNFA {
     let edges: Vec<(usize, char, usize)> = (0..n).map(|i| (i, word[i], i + 1)).collect();
     SimpleNFA::try_new(n + 1, [0], [n], alphabet, edges).unwrap()
 }
+
+////////////////////////////////////////////////////////////
+// Tests
+////////////////////////////////////////////////////////////
 
 #[test]
 fn nfa_even_len_accepts_len_0() {
@@ -521,7 +528,7 @@ fn complex_reverse_concat_relates_to_concat_reverse() {
 #[test]
 fn complex_minimize_via_to_dfa_preserves_abaaacc() {
     let w = chars("abaaacc");
-    let dfa = nfa_literal(&w).to_dfa().minimize();
+    let dfa = nfa_literal(&w).to_minimized_dfa();
     assert!(accepts_dfa(&dfa, &w));
 }
 

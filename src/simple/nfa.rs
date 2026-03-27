@@ -329,10 +329,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
                 }
             }
         }
-        // If `other` accepts the empty word, any word in `self` may be followed
-        // by zero symbols from `other`, so every accepting state of `self`
-        // remains accepting in the concatenation (no ε-transitions: ε ∈ L(other)
-        // iff some state is both initial and accepting).
+        // if `other` accepts the empty word
         let other_accepts_empty = other
             .initial
             .iter()
