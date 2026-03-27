@@ -4,9 +4,8 @@
 //! - [`FiniteAutomaton`](automaton::FiniteAutomaton),
 //! - [`DeterministicFiniteAutomaton`](deterministic::DeterministicFiniteAutomaton),
 //! - [`NonDeterministicFiniteAutomaton`](nondeterministic::NonDeterministicFiniteAutomaton),
-//! - Graphviz (`.dot`) support via [`FiniteAutomaton::to_dot`](automaton::FiniteAutomaton::to_dot)
 //! - DFA transition matrices via `SimpleDFA::to_matrix` (and similar helpers).
-//! - Lexer-style longest-match parsing via [`parsing::parse_by_longest_match`](parsing::parse_by_longest_match).
+//! - Lexer-style longest-match parsing for DFAs via [`parsing::parse_by_longest_match`](parsing::parse_by_longest_match).
 
 mod automaton;
 mod deterministic;

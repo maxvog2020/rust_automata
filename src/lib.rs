@@ -31,7 +31,7 @@
 //! # Module organization
 //! - [`general`]: base `Automaton` trait and determinism/nondeterminism helpers.
 //! - [`finite`]: `FiniteAutomaton`, plus algorithms such as `to_dfa`, `complete`,
-//!   `minimize`, and Graphviz export (`to_dot`) where supported.
+//!   `minimize`.
 //! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
 //!
 pub mod finite;

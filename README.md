@@ -32,10 +32,7 @@ High-level operations (typically provided as trait methods):
 - Closure operations: `reverse`, `trimmed`, `accessible`, `co_accessible`
 - DFA completion and complement: `complete`, `complement` (requires a total DFA pipeline)
 - Brzozowski minimization (`minimize`)
-
-Debug/interop helpers:
-- `FiniteAutomaton::to_dot` (Graphviz DOT) for visual inspection
-- `DeterministicFiniteAutomaton::to_matrix` (DFA transition matrix)
+- Lexer-style longest-match parsing for DFAs (`parse_by_longest_match`)
 
 ## Quick example
 
@@ -65,9 +62,6 @@ assert!(dfa.accepts(&['a', 'a']));
 This library is work-in-progress. While the core constructions and trait
 APIs are in place, test coverage is still incomplete and some debug helpers
 are not finished yet.
-
-Known TODOs:
-- `FiniteAutomaton::to_dot` (Graphviz DOT export) is not implemented yet.
 
 ## License
 
