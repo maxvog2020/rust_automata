@@ -329,7 +329,18 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
                 }
             }
         }
-        let acc: HashSet<_> = other.accepting.iter().map(|&s| s + na).collect();
+        // If `other` accepts the empty word, any word in `self` may be followed
+        // by zero symbols from `other`, so every accepting state of `self`
+        // remains accepting in the concatenation (no ε-transitions: ε ∈ L(other)
+        // iff some state is both initial and accepting).
+        let other_accepts_empty = other
+            .initial
+            .iter()
+            .any(|s| other.accepting.contains(s));
+        let mut acc: HashSet<_> = other.accepting.iter().map(|&s| s + na).collect();
+        if other_accepts_empty {
+            acc.extend(self.accepting.iter().copied());
+        }
         SimpleNFA {
             initial: self.initial.clone(),
             accepting: acc,
