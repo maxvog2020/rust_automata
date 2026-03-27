@@ -50,6 +50,17 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
         !self.reachable_states().iter().any(|&s| self.is_accepting_state(s))
     }
 
+    /// Determinize this NFA into a minimized DFA.
+    ///
+    /// The concrete implementation is free to choose an algorithm; the
+    /// default implementation uses Brzozowski's approach (via reverse +
+    /// determinization).
+    fn to_minimized_dfa(&self) -> Self::CorrespondingDFA 
+        where Self: Sized
+    {
+        self.reverse().to_dfa().to_nfa().reverse().to_dfa()
+    }
+
     /// Language union across many NFAs.
     ///
     /// Computes `L(a0) ∪ L(a1) ∪ ...` for every automaton produced by `automata`.

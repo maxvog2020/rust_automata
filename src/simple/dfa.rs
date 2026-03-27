@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use crate::finite::FiniteAutomaton;
 use crate::finite::DeterministicFiniteAutomaton;
-use crate::finite::NonDeterministicFiniteAutomaton;
 use crate::general::Automaton;
 use crate::general::DeterministicAutomaton;
 
@@ -238,9 +237,5 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
 
     fn complete(&self) -> Self {
         self.completed()
-    }
-
-    fn minimize(&self) -> Self {
-        self.to_nfa().reverse().to_dfa().to_nfa().reverse().to_dfa()
     }
 }

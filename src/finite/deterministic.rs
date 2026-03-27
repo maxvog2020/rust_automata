@@ -15,14 +15,18 @@ pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton
     /// Convert this DFA into an equivalent NFA.
     fn to_nfa(&self) -> Self::CorrespondingNFA;
 
-    /// Minimize this DFA.
-    ///
-    /// The concrete implementation is free to choose an algorithm; the
-    /// `SimpleDFA` implementation uses Brzozowski's approach (via reverse +
-    /// determinization).
-    fn minimize(&self) -> Self;
-
     /// Make the DFA *total* by adding a sink/trap state for missing
     /// transitions.
     fn complete(&self) -> Self;
+
+    /// Minimize this DFA.
+    ///
+    /// The concrete implementation is free to choose an algorithm; the
+    /// default implementation uses Brzozowski's approach (via reverse +
+    /// determinization).
+    fn minimize(&self) -> Self 
+        where Self: Sized 
+    {
+        self.to_nfa().to_minimized_dfa()
+    }
 }
