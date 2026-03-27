@@ -1,5 +1,5 @@
 use automata_core::finite::parsing::{parse_by_longest_match, ParseResult};
-use automata_core::simple::SimpleDFA;
+use automata_core::simple::{SimpleBuildError, SimpleDFA};
 
 fn literal_ab_chain() -> SimpleDFA {
     // 0 --a--> 1 --b--> 2 (2 is accepting)
@@ -254,4 +254,52 @@ fn four_tokens_mixed_lengths() {
             },
         ]
     );
+}
+
+// --- SimpleDFA::try_new_singleton_words + parsing ---
+
+#[test]
+fn singleton_words_dfa_parses_each_listed_symbol() {
+    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b', '+'], ['a', '+']).unwrap();
+    let got = parse_by_longest_match(&dfa, &['a', '+', 'a']).unwrap();
+    assert_eq!(
+        got,
+        vec![
+            ParseResult {
+                state: 1,
+                position_in_word: 0,
+                size: 1,
+            },
+            ParseResult {
+                state: 1,
+                position_in_word: 1,
+                size: 1,
+            },
+            ParseResult {
+                state: 1,
+                position_in_word: 2,
+                size: 1,
+            },
+        ]
+    );
+}
+
+#[test]
+fn singleton_words_dfa_rejects_symbol_with_no_move_from_initial() {
+    // `b` is in the alphabet but δ(0, b) is undefined.
+    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap();
+    assert!(parse_by_longest_match(&dfa, &['b']).is_none());
+}
+
+#[test]
+fn singleton_words_dfa_build_fails_if_symbol_not_in_alphabet() {
+    let err = SimpleDFA::try_new_singleton_words(['x'], ['x', 'y']).unwrap_err();
+    assert_eq!(err, SimpleBuildError::SymbolNotInAlphabet('y'));
+}
+
+#[test]
+fn singleton_words_dfa_with_no_symbols_accepts_only_empty_word() {
+    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], []).unwrap();
+    assert_eq!(parse_by_longest_match(&dfa, &[]).unwrap(), vec![]);
+    assert!(parse_by_longest_match(&dfa, &['a']).is_none());
 }
