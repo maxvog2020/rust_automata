@@ -99,6 +99,33 @@ impl SimpleNFA {
         })
     }
 
+    /// Build a **two-state** `SimpleNFA`: initial state `0`, unique accepting
+    /// state `1`, and a one-step move from `0` to `1` on selected inputs only.
+    ///
+    /// Accepted words are exactly the **singleton** (one-letter) words whose
+    /// symbol appears in `symbols` (state `0` is not accepting, so the empty
+    /// word is rejected).
+    ///
+    /// Returns [`SimpleBuildError::SymbolNotInAlphabet`] if any `symbols`
+    /// entry is missing from `alphabet`.
+    pub fn try_new_singleton_words(
+        alphabet: impl IntoIterator<Item = char>,
+        symbols: impl IntoIterator<Item = char>,
+    ) -> Result<Self, SimpleBuildError> {
+        let alphabet: HashSet<char> = alphabet.into_iter().collect();
+        let symbols: HashSet<char> = symbols.into_iter().collect();
+        for &c in &symbols {
+            if !alphabet.contains(&c) {
+                return Err(SimpleBuildError::SymbolNotInAlphabet(c));
+            }
+        }
+        let transitions: Vec<_> = symbols
+            .into_iter()
+            .map(|c| (0usize, c, 1usize))
+            .collect();
+        Self::try_new(2, [0], [1], alphabet, transitions)
+    }
+
     fn reversed(&self) -> SimpleNFA {
         let n = self.transitions.len();
         let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); n];

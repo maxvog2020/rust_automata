@@ -4,7 +4,7 @@ mod common;
 use automata_core::finite::DeterministicFiniteAutomaton;
 use automata_core::general::Automaton;
 use automata_core::general::DeterministicAutomaton;
-use automata_core::simple::{SimpleBuildError, SimpleDFA};
+use automata_core::simple::SimpleDFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
 
@@ -298,25 +298,3 @@ fn dfa_to_matrix_complete_single_symbol() {
     assert_eq!(m[2][0], Some(2));
 }
 
-// --- SimpleDFA::try_new_singleton_words ---
-
-#[test]
-fn try_new_singleton_words_transition_only_for_listed_symbols() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap();
-    assert!(dfa.accepts(&['a']));
-    assert!(!dfa.accepts(&['b']));
-    assert_eq!(dfa.transition(0, &'b'), None);
-}
-
-#[test]
-fn try_new_singleton_words_errors_when_listed_symbol_missing_from_alphabet() {
-    let err = SimpleDFA::try_new_singleton_words(['x'], ['x', 'y']).unwrap_err();
-    assert_eq!(err, SimpleBuildError::SymbolNotInAlphabet('y'));
-}
-
-#[test]
-fn try_new_singleton_words_empty_symbol_set_has_no_accepting_run_from_initial() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], []).unwrap();
-    assert!(!dfa.accepts(&[]));
-    assert!(!dfa.accepts(&['a']));
-}

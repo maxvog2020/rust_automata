@@ -1,7 +1,7 @@
 use std::hint::black_box;
 use std::iter::repeat_n;
 
-use automata_core::finite::{DeterministicFiniteAutomaton, NonDeterministicFiniteAutomaton};
+use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::parse_by_longest_match;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -58,7 +58,7 @@ fn word_expression_stream(fragment: &str, target_len: usize) -> Vec<char> {
 fn nfa_singleton(words: &str) -> SimpleNFA {
     let alphabet = words.chars();
     let symbols = words.chars();
-    SimpleDFA::try_new_singleton_words(alphabet, symbols).unwrap().to_nfa()
+    SimpleNFA::try_new_singleton_words(alphabet, symbols).unwrap()
 }
 
 fn nfa_digit() -> SimpleNFA {
@@ -148,9 +148,9 @@ fn bench_parse_nat_ops_space(c: &mut Criterion) {
 
 fn bench_parse_singleton_words_dfa(c: &mut Criterion) {
     let alphabet: Vec<char> = ('a'..='z').chain('0'..='9').collect();
-    let dfa = SimpleDFA::try_new_singleton_words(alphabet.iter().copied(), alphabet.iter().copied())
+    let dfa = SimpleNFA::try_new_singleton_words(alphabet.iter().copied(), alphabet.iter().copied())
         .unwrap()
-        .minimize();
+        .to_minimized_dfa();
     let word: Vec<char> = std::iter::repeat("a7k2m9p1")
         .flat_map(|s| s.chars())
         .take(LONG)

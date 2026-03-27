@@ -3,8 +3,8 @@ mod common;
 
 use std::collections::HashSet;
 
-use automata_core::finite::NonDeterministicFiniteAutomaton;
-use automata_core::general::Automaton;
+use automata_core::{finite::NonDeterministicFiniteAutomaton, simple::SimpleBuildError};
+use automata_core::general::{Automaton, DeterministicAutomaton, NonDeterministicAutomaton};
 use automata_core::simple::SimpleNFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
@@ -543,4 +543,26 @@ fn complex_even_union_balanced_brackets_style_star() {
     assert!(accepts_nfa(&s, &chars("()()")));
     let rev = s.reverse();
     assert!(accepts_nfa(&rev, &chars(")(")));
+}
+
+#[test]
+fn try_new_singleton_words_transition_only_for_listed_symbols() {
+    let nfa = SimpleNFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap();
+    let dfa = nfa.to_dfa();
+    assert!(dfa.accepts(&['a']));
+    assert!(!dfa.accepts(&['b']));
+    assert_eq!(nfa.successors(0, &'b').collect::<Vec<_>>(), vec![]);
+}
+
+#[test]
+fn try_new_singleton_words_errors_when_listed_symbol_missing_from_alphabet() {
+    let err = SimpleNFA::try_new_singleton_words(['x'], ['x', 'y']).unwrap_err();
+    assert_eq!(err, SimpleBuildError::SymbolNotInAlphabet('y'));
+}
+
+#[test]
+fn try_new_singleton_words_empty_symbol_set_has_no_accepting_run_from_initial() {
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], []).unwrap().to_dfa();
+    assert!(!dfa.accepts(&[]));
+    assert!(!dfa.accepts(&['a']));
 }

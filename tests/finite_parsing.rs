@@ -1,4 +1,4 @@
-use automata_core::finite::{DeterministicFiniteAutomaton, NonDeterministicFiniteAutomaton};
+use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::{parse_by_longest_match, ParseResult};
 use automata_core::general::Automaton;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
@@ -30,7 +30,7 @@ fn word_expression_stream(fragment: &str, target_len: usize) -> Vec<char> {
 fn nfa_singleton(words: &str) -> SimpleNFA {
     let alphabet = words.chars();
     let symbols = words.chars();
-    SimpleDFA::try_new_singleton_words(alphabet, symbols).unwrap().to_nfa()
+    SimpleNFA::try_new_singleton_words(alphabet, symbols).unwrap()
 }
 
 fn nfa_digit() -> SimpleNFA {
@@ -338,7 +338,7 @@ fn four_tokens_mixed_lengths() {
 
 #[test]
 fn parse_singleton_words_each_listed_symbol_is_one_segment() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b', '+'], ['a', '+']).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b', '+'], ['a', '+']).unwrap().to_dfa();
     let got = parse_by_longest_match(&dfa, &['a', '+', 'a']).unwrap();
     assert_eq!(
         got,
@@ -364,7 +364,7 @@ fn parse_singleton_words_each_listed_symbol_is_one_segment() {
 
 #[test]
 fn parse_singleton_words_full_alphabet_each_char_one_segment() {
-    let dfa = SimpleDFA::try_new_singleton_words(['x', 'y', 'z'], ['x', 'y', 'z']).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['x', 'y', 'z'], ['x', 'y', 'z']).unwrap().to_dfa();
     let word = ['x', 'y', 'z', 'x'];
     let got = parse_by_longest_match(&dfa, &word).unwrap();
     assert_eq!(got.len(), 4);
@@ -377,30 +377,29 @@ fn parse_singleton_words_full_alphabet_each_char_one_segment() {
 
 #[test]
 fn parse_singleton_words_fails_when_first_char_not_singleton() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap().to_dfa();
     assert!(parse_by_longest_match(&dfa, &['b']).is_none());
     assert!(parse_by_longest_match(&dfa, &['b', 'a']).is_none());
 }
 
 #[test]
 fn parse_singleton_words_fails_after_good_prefix_when_next_char_not_singleton() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], ['a']).unwrap().to_dfa();
     assert!(parse_by_longest_match(&dfa, &['a', 'b']).is_none());
 }
 
 #[test]
 fn parse_singleton_words_empty_input_yields_empty_parse() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b', '+'], ['a', '+']).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b', '+'], ['a', '+']).unwrap().to_dfa();
     assert_eq!(parse_by_longest_match(&dfa, &[]).unwrap(), vec![]);
 }
 
 #[test]
 fn parse_singleton_words_digit_like_symbols_stream() {
-    let dfa = SimpleDFA::try_new_singleton_words(
+    let dfa = SimpleNFA::try_new_singleton_words(
         ['0', '1', '2', '+', '-', ' ', 'x'],
         ['0', '1', '2', '+', '-'],
-    )
-    .unwrap();
+    ).unwrap().to_dfa();
     let word: Vec<char> = "0+1-2".chars().collect();
     let got = parse_consumed(&word, &dfa);
     assert_eq!(got.len(), 5);
@@ -412,7 +411,7 @@ fn parse_singleton_words_digit_like_symbols_stream() {
 
 #[test]
 fn parse_singleton_words_with_empty_constructor_symbol_set_only_empty_input() {
-    let dfa = SimpleDFA::try_new_singleton_words(['a', 'b'], []).unwrap();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], []).unwrap().to_dfa();
     assert_eq!(parse_by_longest_match(&dfa, &[]).unwrap(), vec![]);
     assert!(parse_by_longest_match(&dfa, &['a']).is_none());
 }
