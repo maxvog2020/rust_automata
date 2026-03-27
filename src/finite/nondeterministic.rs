@@ -84,13 +84,9 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     }
 }
 
-fn clone_reduce<'a, T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Option<T> {
+fn clone_reduce<T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Option<T> {
     let mut iter = arr.iter();
-
-    let Some(item) = iter.next() else {
-        return None;
-    };
-
-    Some(iter.fold(item.clone(), |a, b| f(a, &b)))
+    let item = iter.next()?;
+    Some(iter.fold(item.clone(), f))
 }
 
