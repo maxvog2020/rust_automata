@@ -387,14 +387,6 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn co_accessible(&self) -> Self {
         self.restrict_states(&self.co_reachable())
     }
-
-    fn is_subset_of(&self, other: &Self) -> bool {
-        self.difference_inner(other).is_empty_language()
-    }
-
-    fn is_equivalent_to(&self, other: &Self) -> bool {
-        self.is_subset_of(other) && other.is_subset_of(self)
-    }
 }
 
 impl SimpleNFA {

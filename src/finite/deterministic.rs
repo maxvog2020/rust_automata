@@ -12,7 +12,9 @@ use crate::general::DeterministicAutomaton;
 pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton {
     type CorrespondingNFA: NonDeterministicFiniteAutomaton<State = Self::State, Input = Self::Input, CorrespondingDFA = Self>;
     
-    /// Convert this DFA into an equivalent NFA.
+    /// Convert this DFA into an equivalent NFA with the same state set and step
+    /// semantics: for any word `w`, the run from the initial state ends in state
+    /// `q` in the DFA iff it ends in `q` in the NFA.
     fn to_nfa(&self) -> Self::CorrespondingNFA;
 
     /// Make the DFA *total* by adding a sink/trap state for missing
@@ -24,9 +26,7 @@ pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton
     /// The concrete implementation is free to choose an algorithm; the
     /// default implementation uses Brzozowski's approach (via reverse +
     /// determinization).
-    fn minimize(&self) -> Self 
-        where Self: Sized 
-    {
+    fn minimize(&self) -> Self {
         self.to_nfa().to_minimized_dfa()
     }
 }

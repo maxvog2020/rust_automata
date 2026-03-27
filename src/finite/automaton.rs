@@ -7,7 +7,7 @@ use crate::general::Automaton;
 ///
 /// This trait is used as a *finiteness bound*: algorithms that need to loop
 /// over all symbols or all states should require `FiniteAutomaton`.
-pub trait FiniteAutomaton: Automaton {
+pub trait FiniteAutomaton: Automaton + Sized {
     /// Return the automaton's alphabet as a set.
     fn alphabet_set(&self) -> HashSet<Self::Input> {
         self.alphabet().collect()
@@ -21,5 +21,12 @@ pub trait FiniteAutomaton: Automaton {
     /// Return the automaton's accepting states as a set.
     fn accepting_states_set(&self) -> HashSet<Self::State> {
         self.accepting_states().collect()
+    }
+
+    /// The set of symbols shared with `other`.
+    fn common_alphabet(&self, other: &Self) -> HashSet<Self::Input> {
+        let alphabet1: HashSet<Self::Input> = self.alphabet_set();
+        let alphabet2: HashSet<Self::Input> = other.alphabet_set();
+        alphabet1.intersection(&alphabet2).cloned().collect()
     }
 }

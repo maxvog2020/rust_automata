@@ -40,19 +40,12 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     /// Restrict to `co-reachable` states.
     fn co_accessible(&self) -> Self;
 
-    /// Check whether `L(self) ⊆ L(other)`.
-    fn is_subset_of(&self, other: &Self) -> bool;
-    /// Check whether `L(self) = L(other)`.
-    fn is_equivalent_to(&self, other: &Self) -> bool;
-
     /// Determinize this NFA into a minimized DFA.
     ///
     /// The concrete implementation is free to choose an algorithm; the
     /// default implementation uses Brzozowski's approach (via reverse +
     /// determinization).
-    fn to_minimized_dfa(&self) -> Self::CorrespondingDFA 
-        where Self: Sized
-    {
+    fn to_minimized_dfa(&self) -> Self::CorrespondingDFA {
         self.reverse().to_dfa().to_nfa().reverse().to_dfa()
     }
 
@@ -62,7 +55,7 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     ///
     /// Returns `None` if the slice is empty.
     fn union_all(automata: &[Self]) -> Option<Self>
-        where Self: Clone + Sized
+        where Self: Clone
     {
         clone_reduce(automata, |a, b| a.union(b))
     }
@@ -73,7 +66,7 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     ///
     /// Returns `None` if the slice is empty.
     fn concatenate_all(automata: &[Self]) -> Option<Self> 
-        where Self: Clone + Sized 
+        where Self: Clone
     {
         clone_reduce(automata, |a, b| a.concatenate(b))
     }
@@ -84,22 +77,14 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     ///
     /// Returns `None` if the slice is empty.
     fn intersect_all(automata: &[Self]) -> Option<Self> 
-        where Self: Clone + Sized 
+        where Self: Clone
     {
         clone_reduce(automata, |a, b| a.intersection(b))
     }
 
-    /// The set of symbols shared with `other`.
-    fn common_alphabet(&self, other: &Self) -> HashSet<Self::Input> {
-        let alphabet1: HashSet<Self::Input> = self.alphabet_set();
-        let alphabet2: HashSet<Self::Input> = other.alphabet_set();
-        alphabet1.intersection(&alphabet2).cloned().collect()
-    }
-
-    /// Helper for co-acceptance compatibility.
-    ///
-    /// Returns the set of states of `self` that may appear as the left component
-    /// of a co-accepting pair reachable over the *common alphabet*.
+    /// Accepting states of `self` that can be reached **in sync** with some
+    /// accepting state of `other`: both follow the same input word, using only
+    /// symbols that appear in both alphabets.
     fn accepting_states_compatible_with(&self, other: &Self) -> HashSet<Self::State> {
         let mut common = HashSet::new();
         let mut queue = VecDeque::new();
@@ -168,6 +153,16 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     /// Whether the recognized language is empty.
     fn is_empty_language(&self) -> bool {
         !self.reachable_states_set().iter().any(|&s| self.is_accepting_state(s))
+    }
+
+    /// Check whether `L(self) ⊆ L(other)`.
+    fn is_subset_of(&self, other: &Self) -> bool {
+        self.difference(other).is_empty_language()
+    }
+
+    /// Check whether `L(self) = L(other)`.
+    fn is_equivalent_to(&self, other: &Self) -> bool {
+        self.is_subset_of(other) && other.is_subset_of(self)
     }
 }
 
