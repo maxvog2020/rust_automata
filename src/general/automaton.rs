@@ -36,4 +36,9 @@ pub trait Automaton {
 
     /// Whether `state` is an accepting/final state.
     fn is_accepting_state(&self, state: Self::State) -> bool;
+
+    /// Iterate over all accepting states of the automaton.
+    fn accepting_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
+        self.states().filter(|s| self.is_accepting_state(*s))
+    }
 }
