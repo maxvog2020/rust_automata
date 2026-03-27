@@ -43,7 +43,7 @@ fn longest_accept_prefix_lengths<A: DeterministicFiniteAutomaton>(
     word: &[A::Input],
 ) -> HashMap<A::State, Vec<usize>> {
     let word_length = word.len();
-    let states = automaton.states().collect::<Vec<_>>();
+    let states = automaton.states_set();
 
     let mut dp: HashMap<A::State, Vec<usize>> = HashMap::new();
     for &state in &states {

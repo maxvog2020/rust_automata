@@ -245,7 +245,15 @@ impl Automaton for SimpleNFA {
     }
 }
 
-impl FiniteAutomaton for SimpleNFA {}
+impl FiniteAutomaton for SimpleNFA {
+    fn alphabet_set(&self) -> HashSet<Self::Input> {
+        self.alphabet.clone()
+    }
+
+    fn accepting_states_set(&self) -> HashSet<Self::State> {
+        self.accepting.clone()
+    }
+}
 
 impl NonDeterministicAutomaton for SimpleNFA {
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {

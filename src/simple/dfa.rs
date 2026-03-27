@@ -200,7 +200,15 @@ impl Automaton for SimpleDFA {
     }
 }
 
-impl FiniteAutomaton for SimpleDFA {}
+impl FiniteAutomaton for SimpleDFA {
+    fn alphabet_set(&self) -> HashSet<Self::Input> {
+        self.alphabet.clone()
+    }
+
+    fn accepting_states_set(&self) -> HashSet<Self::State> {
+        self.accepting.clone()
+    }
+}
 
 impl DeterministicAutomaton for SimpleDFA {
     fn initial_state(&self) -> Self::State {

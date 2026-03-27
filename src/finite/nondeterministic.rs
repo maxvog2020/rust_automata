@@ -1,3 +1,5 @@
+use std::collections::{HashSet, VecDeque};
+
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
 use crate::general::NonDeterministicAutomaton;
@@ -31,8 +33,6 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     /// Trim to `accessible ∩ co_accessible`.
     fn trimmed(&self) -> Self;
     /// Complement language.
-    ///
-    /// Typically requires a total DFA completion pipeline internally.
     fn complement(&self) -> Self;
 
     /// Restrict to `reachable` states.
@@ -44,11 +44,6 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     fn is_subset_of(&self, other: &Self) -> bool;
     /// Check whether `L(self) = L(other)`.
     fn is_equivalent_to(&self, other: &Self) -> bool;
-
-    /// Whether the recognized language is empty.
-    fn is_empty_language(&self) -> bool {
-        !self.reachable_states().iter().any(|&s| self.is_accepting_state(s))
-    }
 
     /// Determinize this NFA into a minimized DFA.
     ///
@@ -92,6 +87,87 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
         where Self: Clone + Sized 
     {
         clone_reduce(automata, |a, b| a.intersection(b))
+    }
+
+    /// The set of symbols shared with `other`.
+    fn common_alphabet(&self, other: &Self) -> HashSet<Self::Input> {
+        let alphabet1: HashSet<Self::Input> = self.alphabet_set();
+        let alphabet2: HashSet<Self::Input> = other.alphabet_set();
+        alphabet1.intersection(&alphabet2).cloned().collect()
+    }
+
+    /// Helper for co-acceptance compatibility.
+    ///
+    /// Returns the set of states of `self` that may appear as the left component
+    /// of a co-accepting pair reachable over the *common alphabet*.
+    fn accepting_states_compatible_with(&self, other: &Self) -> HashSet<Self::State> {
+        let mut common = HashSet::new();
+        let mut queue = VecDeque::new();
+        let mut visited = HashSet::new();
+
+        let common_alphabet = self.common_alphabet(other);
+
+        for initial_state1 in self.initial_states() {
+            for initial_state2 in other.initial_states() {
+                queue.push_back((initial_state1, initial_state2));
+            }
+        }
+
+        while let Some((state1, state2)) = queue.pop_front() {
+            if visited.contains(&(state1, state2)) {
+                continue;
+            }
+
+            visited.insert((state1, state2));
+
+            if self.is_accepting_state(state1) && other.is_accepting_state(state2) {
+                common.insert(state1);
+            }
+
+            for input in &common_alphabet {
+                for new_state1 in self.successors(state1, input) {
+                    for new_state2 in other.successors(state2, input) {
+                        queue.push_back((new_state1, new_state2));
+                    }
+                }
+            }
+        }
+
+        common
+    }
+
+    /// All states reachable from the initial states.
+    ///
+    /// This helper explores the automaton by iterating successor transitions
+    /// over every symbol in `alphabet()`.
+    fn reachable_states_set(&self) -> HashSet<Self::State> {
+        let mut reachable = HashSet::new();
+        let mut queue = VecDeque::new();
+
+        for initial_state in self.initial_states() {
+            queue.push_back(initial_state);
+        }
+
+        while let Some(state) = queue.pop_front() {
+            if reachable.contains(&state) {
+                continue;
+            }
+
+            reachable.insert(state);
+
+            for input in self.alphabet() {
+                for successor in self.successors(state, &input) {
+                    queue.push_back(successor);
+                }
+            }
+        }
+
+        reachable
+    }
+
+    /// Whether the recognized language is empty.
+    fn is_empty_language(&self) -> bool {
+        !self.reachable_states_set().iter().any(|&s| self.is_accepting_state(s))
     }
 }
 
