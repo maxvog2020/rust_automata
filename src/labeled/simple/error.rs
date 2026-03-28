@@ -1,11 +1,13 @@
 use core::fmt;
 
-/// Error returned when building a `SimpleLabeledDFA` or `SimpleLabeledNFA`.
+/// Error returned when building a [`SimpleLabeledDFA`](super::SimpleLabeledDFA)
+/// or [`SimpleLabeledNFA`](super::SimpleLabeledNFA).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SimpleBuildError {
     /// The initial state must satisfy `initial < state_count`.
     InitialOutOfRange { initial: usize, state_count: usize },
-    /// A state in `accepting` must satisfy `state < state_count`.
+    /// A state listed in the label map (or initial set in `try_new_labeled`)
+    /// must satisfy `state < state_count`.
     StateOutOfRange { state: usize, state_count: usize },
     /// A transition source must satisfy `from < state_count`.
     TransitionFromOutOfRange { from: usize, state_count: usize },

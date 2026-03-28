@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::labeled::arbitrary::automaton::LabeledAutomaton;
 
-// TODO: docs
+/// Deterministic labeled automaton: at most one successor per `(state, symbol)`.
 pub trait DeterministicLabeledAutomaton<Label: Hash + Eq + Clone>: LabeledAutomaton<Label> {
     /// The unique initial state.
     fn initial_state(&self) -> Self::State;
@@ -11,9 +11,9 @@ pub trait DeterministicLabeledAutomaton<Label: Hash + Eq + Clone>: LabeledAutoma
     fn transition(&self, state: Self::State, input: &Self::Input) -> Option<Self::State>;
 
     /// Run the automaton on `word` **starting from** `state` (not necessarily
-    /// [`initial_state`](DeterministicAutomaton::initial_state)).
+    /// [`initial_state`](DeterministicLabeledAutomaton::initial_state)).
     ///
-    /// Applies [`transition`] once per symbol in order. Returns `Some(q)` if
+    /// Applies [`transition`](DeterministicLabeledAutomaton::transition) once per symbol in order. Returns `Some(q)` if
     /// the entire word is read (every step succeeded); otherwise `None`
     /// (an undefined transition or invalid configuration).
     fn run_from(&self, state: Self::State, word: &[Self::Input]) -> Option<Self::State> {
@@ -24,7 +24,11 @@ pub trait DeterministicLabeledAutomaton<Label: Hash + Eq + Clone>: LabeledAutoma
         Some(current_state)
     }
 
-    // TODO: docs
+    /// Label after reading `word` from the **initial** state, if every step is
+    /// defined and the final state carries a label.
+    ///
+    /// Equivalent to [`run_from`](DeterministicLabeledAutomaton::run_from)`(initial_state(), word)`
+    /// followed by [`get_label`](LabeledAutomaton::get_label).
     fn get_label_of_word(&self, word: &[Self::Input]) -> Option<Label> {
         let state = self.initial_state();
         let Some(last_state) = self.run_from(state, word) else {

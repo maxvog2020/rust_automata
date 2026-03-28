@@ -1,4 +1,9 @@
-// TODO: docs
+//! Finite labeled automata: enumerable states and alphabet.
+//!
+//! Comprises [`FiniteLabeledAutomaton`], [`DeterministicFiniteLabeledAutomaton`],
+//! [`NonDeterministicFiniteLabeledAutomaton`], and [`parsing`] for DFA
+//! longest-match lexing.
+
 mod automaton;
 mod deterministic;
 mod nondeterministic;

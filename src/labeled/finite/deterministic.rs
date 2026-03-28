@@ -4,7 +4,7 @@ use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 use crate::labeled::finite::automaton::FiniteLabeledAutomaton;
 
-// TODO: docs
+/// Deterministic finite automaton with labels (DFA + output on final states).
 pub trait DeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
     DeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label>
 {
@@ -24,9 +24,12 @@ pub trait DeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
     /// transitions, setting the label of the sink state to `None`.
     fn complete(&self) -> Self;
 
-    /// Minimize this DFA.
+    /// Minimize this DFA (language and label behavior preserved).
     ///
-    /// The concrete implementation is free to choose an algorithm; the
-    /// default implementation uses Hopcroft's approach.
+    /// Implementations may use any correct algorithm. The reference type
+    /// [`crate::labeled::simple::SimpleLabeledDFA`] uses Hopcroft’s algorithm
+    /// after completion, with an initial partition by
+    /// [`LabeledAutomaton::get_label`](crate::labeled::arbitrary::LabeledAutomaton::get_label)
+    /// (`Option<Label>`), not only accepting vs non-accepting.
     fn minimize(&self) -> Self;
 }

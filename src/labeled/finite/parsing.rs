@@ -4,12 +4,12 @@
 //!
 //! [`parse_by_longest_match`] walks the input from left to right. At each
 //! step it assumes the automaton is again in
-//! [`DeterministicAutomaton::initial_state`](crate::general::DeterministicAutomaton::initial_state)
+//! [`DeterministicLabeledAutomaton::initial_state`](crate::labeled::arbitrary::DeterministicLabeledAutomaton::initial_state)
 //! (as after a prior token in a typical hand-written lexer). From that state it finds the
 //! **longest** prefix of the unread suffix that can be read with one
-//! [`transition`](crate::general::DeterministicAutomaton::transition) per
-//! symbol such that the **state after the last symbol of that prefix is
-//! accepting** ([`crate::general::Automaton::is_accepting_state`]).
+//! [`transition`](crate::labeled::arbitrary::DeterministicLabeledAutomaton::transition) per
+//! symbol such that the **state after the last symbol of that prefix carries a
+//! label** ([`LabeledAutomaton::get_label`](crate::labeled::arbitrary::LabeledAutomaton::get_label) is [`Some`]).
 //!
 //! That prefix is one **token**. The procedure repeats until the whole `word`
 //! is consumed. If at some point no positive-length accepting prefix exists, or
@@ -19,7 +19,7 @@
 //! Each [`ParseResult`] describes one token: [`ParseResult::position_in_word`]
 //! is where it starts in `word`, [`ParseResult::size`] is its length, and
 //! [`ParseResult::state`] is the automaton state **after** reading the token
-//! (an accepting state when the implementation is consistent).
+//! (a labeled / final state when the implementation is consistent).
 
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -79,7 +79,7 @@ fn longest_accept_prefix_lengths<
 /// Split `word` into tokens using longest-match, **from [`initial_state`] each
 /// time** after a token is consumed.
 ///
-/// [`initial_state`]: crate::general::DeterministicAutomaton::initial_state
+/// [`initial_state`]: crate::labeled::arbitrary::DeterministicLabeledAutomaton::initial_state
 pub fn parse_by_longest_match<
     Label: Hash + Eq + Clone,
     A: DeterministicFiniteLabeledAutomaton<Label>,

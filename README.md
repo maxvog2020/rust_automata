@@ -6,9 +6,13 @@
 
 Deterministic and nondeterministic automaton algorithms in Rust.
 
-The crate is built around a generic automaton trait layer (`general`). Some
-algorithms live in the `finite` module and require enumerating states and
-input symbols (so they work with finite-state/finite-alphabet automata).
+The crate is layered:
+
+- **`labeled`** — automata whose states may carry an output **label** (`LabeledAutomaton`, DFA/NFA labeled traits, `SimpleLabeledDFA` / `SimpleLabeledNFA`).
+- **`labeled::arbitrary`** — labeled traits **without** assuming a finite state set or alphabet (iterators over states and symbols are not required to end).
+- **`arbitrary`** — same traits with `Label = ()` (unlabeled façade: accepting states are those with `Some(())`).
+- **`finite`** / **`labeled::finite`** — finiteness bounds so algorithms can enumerate states and symbols (subset construction, closure operations, completion, minimization, longest-match parsing, etc.).
+
 The public trait layer does not include ε-transitions.
 
 This crate is not affiliated with the unrelated crate on crates.io named
@@ -17,29 +21,26 @@ This crate is not affiliated with the unrelated crate on crates.io named
 ## What it does
 
 The library provides:
-- Base trait layers for generic automata concepts (`general`)
-- A finiteness layer for algorithms that require finite state sets and finite alphabets (`finite`)
-- Concrete reference implementations (`simple`), plus a set of integration tests
 
-The main emphasis is to keep the public trait layer free of ε-transitions.
+- Trait layers for labeled and unlabeled automata (`labeled`, `arbitrary`, `finite`)
+- Concrete reference types in `simple` (`SimpleDFA` / `SimpleNFA` are aliases with `Label = ()` over `labeled::simple`)
 
-## Implemented
+High-level operations (typically trait methods on the **finite** NFA/DFA traits):
 
-High-level operations (typically provided as trait methods):
-- Determinization (`to_dfa`) for NFAs
+- Determinization (`to_dfa` / `to_dfa_by`) for NFAs
 - Boolean/structural operations: `union`, `intersection`, `difference`, `concatenate`, `star`
-- N-ary operations: `union_all`, `intersect_all`, `concatenate_all`
-- Closure operations: `reverse`, `trimmed`, `accessible`, `co_accessible`
-- DFA completion and complement: `complete`, `complement` (requires a total DFA pipeline)
-- Brzozowski minimization (`minimize`)
+- N-ary helpers: `union_all`, `intersect_all`, `concatenate_all`
+- Closure-style operations: `reverse`, `trimmed`, `accessible`, `co_accessible`
+- DFA completion and complement: `complete`, `complement`
+- DFA minimization (`minimize`; the `SimpleLabeledDFA` implementation uses Hopcroft’s algorithm)
 - Lexer-style longest-match parsing for DFAs (`parse_by_longest_match`)
 
 ## Quick example
 
 ```rust
 use automata_core::simple::SimpleDFA;
-use automata_core::finite::deterministic::DeterministicFiniteAutomaton;
-use automata_core::general::deterministic::DeterministicAutomaton;
+use automata_core::arbitrary::DeterministicAutomaton;
+use automata_core::finite::DeterministicFiniteAutomaton;
 
 let alphabet = ['a'];
 // 0 = even length, 1 = odd length
@@ -53,9 +54,10 @@ assert!(dfa.accepts(&['a', 'a']));
 
 ## Module organization
 
-- [`general`](src/general/): the base `Automaton` trait + determinism/nondeterminism helpers
-- [`finite`](src/finite/): finiteness-bound traits and algorithmic operations
-- [`simple`](src/simple/): `SimpleDFA` / `SimpleNFA` concrete implementations
+- [`src/labeled/`](src/labeled/) — labeled traits (`arbitrary`, `finite`, `simple`)
+- [`src/arbitrary/`](src/arbitrary/) — unlabeled (`Label = ()`) re-export of the same trait shapes
+- [`src/finite/`](src/finite/) — finite unlabeled automata and algorithms
+- [`src/simple/`](src/simple/) — `SimpleDFA` / `SimpleNFA` aliases over `labeled::simple`
 
 ## WIP / status
 
@@ -66,4 +68,3 @@ are not finished yet.
 ## License
 
 MIT OR Apache-2.0
-

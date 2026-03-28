@@ -1,6 +1,15 @@
 use std::hash::Hash;
 
-// TODO: docs
+/// Automaton with optional **output labels** on states.
+///
+/// This trait does **not** assume a finite state set or alphabet: iterators
+/// returned by [`states`](LabeledAutomaton::states) and
+/// [`alphabet`](LabeledAutomaton::alphabet) are not required to end.
+///
+/// Semantics are intentionally minimal: there is no built-in “accepting” flag;
+/// callers treat states where [`get_label`](LabeledAutomaton::get_label) returns
+/// [`Some`] as final / accepting when modeling classical languages. For
+/// `Label = ()`, that matches the usual “marked accepting states” encoding.
 pub trait LabeledAutomaton<Label: Hash + Eq + Clone> {
     /// State type.
     type State: Hash + Eq + Copy;
@@ -8,10 +17,10 @@ pub trait LabeledAutomaton<Label: Hash + Eq + Clone> {
     /// Input symbol type.
     type Input: Hash + Eq + Clone;
 
-    /// Iterate over all states of the automaton.
+    /// Iterator over states of this automaton (not assumed finite).
     fn states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a;
 
-    /// Iterate over the input symbols of the automaton.
+    /// Iterator over input symbols this automaton uses (not assumed finite).
     fn alphabet<'a>(&'a self) -> impl Iterator<Item = Self::Input> + 'a;
 
     /// Whether `state` belongs to the automaton.

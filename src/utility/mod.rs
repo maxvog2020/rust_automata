@@ -1,3 +1,5 @@
+//! Small internal helpers (folding, map/set conversions for `()`-labeled APIs).
+
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 

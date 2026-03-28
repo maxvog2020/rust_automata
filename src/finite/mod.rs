@@ -1,11 +1,12 @@
-//! Finite automata with finite state sets and finite input alphabets.
+//! Finite automata in the **unlabeled** API (`Label = ()`).
 //!
-//! This module defines:
-//! - [`FiniteAutomaton`](automaton::FiniteAutomaton),
-//! - [`DeterministicFiniteAutomaton`](deterministic::DeterministicFiniteAutomaton),
-//! - [`NonDeterministicFiniteAutomaton`](nondeterministic::NonDeterministicFiniteAutomaton),
-//! - DFA transition matrices via `SimpleDFA::to_matrix` (and similar helpers).
-//! - Lexer-style longest-match parsing for DFAs via [`parsing::parse_by_longest_match`](parsing::parse_by_longest_match).
+//! Defines [`FiniteAutomaton`], [`DeterministicFiniteAutomaton`],
+//! [`NonDeterministicFiniteAutomaton`], re-exports labeled parsing helpers from
+//! [`crate::labeled::finite::parsing`], and hosts algorithms that need to
+//! iterate over all states or alphabet symbols (NFA closure ops, `to_dfa`,
+//! `complete`, `minimize`, `SimpleDFA::to_matrix`, etc.).
+//!
+//! For the same operations with arbitrary labels, see [`crate::labeled::finite`].
 
 mod automaton;
 mod deterministic;

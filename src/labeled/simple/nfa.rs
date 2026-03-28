@@ -10,11 +10,10 @@ use super::dfa::SimpleLabeledDFA;
 use super::error::SimpleBuildError;
 use super::state::SimpleLabeledNFAState;
 
-/// A small reference implementation of a nondeterministic finite automaton.
+/// Dense nondeterministic finite automaton with **state labels** (`char` alphabet).
 ///
-/// `SimpleNFA` uses dense states `[0..state_count)` and stores transitions
-/// as sets:
-/// `State × Input -> HashSet<State>`.
+/// States are `0..state_count`. Transitions are `State × char → HashSet<State>`.
+/// Initial states are a set; final states have [`Some`] label from [`get_label`](LabeledAutomaton::get_label).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleLabeledNFA<Label: Hash + Eq + Clone> {
     pub(crate) initial: HashSet<SimpleLabeledNFAState>,
@@ -24,7 +23,7 @@ pub struct SimpleLabeledNFA<Label: Hash + Eq + Clone> {
 }
 
 impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
-    /// Construct a `SimpleNFA` without validating invariants.
+    /// Construct without validating invariants (tests and internal use).
     ///
     /// This constructor is intended for internal use and tests.
     pub fn new_labeled_unchecked(
@@ -50,7 +49,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
         }
     }
 
-    /// Construct a `SimpleNFA` with validation.
+    /// Construct with validation.
     ///
     /// See [`SimpleBuildError`] for possible failures.
     pub fn try_new_labeled(
@@ -96,7 +95,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
         })
     }
 
-    // TODO: docs
+    /// Map every stored label through `f`; structure and transitions unchanged.
     pub fn map_labels<NewLabel: Hash + Eq + Clone>(
         &self,
         f: impl Fn(Label) -> NewLabel,
@@ -113,7 +112,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
         }
     }
 
-    // TODO: docs
+    /// Replace all labels with `()` (same final states, unit labels).
     pub fn drop_labels(&self) -> SimpleLabeledNFA<()> {
         self.map_labels(|_| ())
     }

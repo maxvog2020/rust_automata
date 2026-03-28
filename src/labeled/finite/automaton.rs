@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 use crate::labeled::arbitrary::LabeledAutomaton;
 
-// TODO: docs
+/// [`LabeledAutomaton`] whose states and alphabet can be collected into sets.
 pub trait FiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
     LabeledAutomaton<Label> + Sized
 {

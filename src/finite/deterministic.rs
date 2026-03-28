@@ -5,7 +5,7 @@ use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 /// Deterministic finite automata (DFA) operations over finite state sets.
 ///
 /// This trait is the DFA counterpart of
-/// [`finite::nondeterministic::NonDeterministicFiniteAutomaton`].
+/// [`NonDeterministicFiniteAutomaton`](crate::finite::NonDeterministicFiniteAutomaton).
 /// Implementations provide determinism-specific operations such as word
 /// acceptance (via [`DeterministicAutomaton::accepts`]), completion, and
 /// minimization.

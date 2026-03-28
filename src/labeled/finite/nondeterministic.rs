@@ -6,7 +6,7 @@ use crate::labeled::finite::automaton::FiniteLabeledAutomaton;
 use crate::labeled::finite::deterministic::DeterministicFiniteLabeledAutomaton;
 use crate::utility::clone_reduce;
 
-// TODO: docs
+/// Nondeterministic finite automaton with labeled final states.
 pub trait NonDeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
     NonDeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label>
 {
@@ -18,10 +18,15 @@ pub trait NonDeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
             CorrespondingNFA = Self,
         >;
 
-    /// Determinize this NFA into a DFA (subset construction).
+    /// Determinize via subset construction.
+    ///
+    /// If several NFA states in the same subset carry a label, they are merged
+    /// with `combine` (applied in ascending NFA state id order for the
+    /// reference implementation).
     fn to_dfa_by(&self, combine: impl Fn(Label, Label) -> Label) -> Self::CorrespondingDFA;
 
-    // TODO: docs
+    /// Disjoint union: concatenate state spaces (second automaton renumbered),
+    /// union initial states and alphabets, and keep all labels.
     fn union(&self, other: &Self) -> Self;
 
     /// Language union across many NFAs.

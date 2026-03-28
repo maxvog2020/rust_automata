@@ -1,10 +1,12 @@
-//! Concrete reference automata implementations.
+//! Dense **labeled** reference automata (`usize` states, `char` alphabet).
 //!
-//! The types in this module are intentionally small and explicit:
-//! - [`SimpleDFA`](dfa::SimpleDFA): deterministic transition table with
-//!   `State × Input -> Option<State>`.
-//! - [`SimpleNFA`](nfa::SimpleNFA): nondeterministic transition relation with
-//!   `State × Input -> set of states`.
+//! - [`SimpleLabeledDFA`]: one transition per `(state, symbol)` when defined;
+//!   labels live in a separate map (states without an entry are non-final).
+//! - [`SimpleLabeledNFA`]: `HashSet` successors per `(state, symbol)`; multiple
+//!   initial states allowed.
+//!
+//! The crate root [`SimpleDFA`](crate::simple::SimpleDFA) /
+//! [`SimpleNFA`](crate::simple::SimpleNFA) are type aliases with `Label = ()`.
 
 mod dfa;
 mod error;

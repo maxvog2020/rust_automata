@@ -10,10 +10,10 @@ use crate::labeled::simple::SimpleLabeledDFA;
 use super::SimpleBuildError;
 use super::state::SimpleDFAState;
 
-/// A small reference implementation of a deterministic finite automaton.
+/// [`SimpleLabeledDFA`](crate::labeled::simple::SimpleLabeledDFA) with `Label = ()`.
 ///
-/// `SimpleDFA` uses a dense state set `[0..state_count)` with transitions
-/// stored as `State × Input -> Option<State>`.
+/// Dense `usize` states and `char` alphabet; accepting states are given explicitly
+/// in constructors (stored as unit labels).
 pub type SimpleDFA = SimpleLabeledDFA<()>;
 
 impl SimpleDFA {
@@ -50,7 +50,7 @@ impl SimpleDFA {
         SimpleLabeledDFA::try_new_labeled(state_count, initial, labels, alphabet, transitions)
     }
 
-    // TODO: docs
+    /// Same graph and acceptance, but every accepting state gets the given `label`.
     pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(
         &self,
         label: Label,

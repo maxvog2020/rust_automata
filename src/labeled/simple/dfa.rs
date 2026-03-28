@@ -10,10 +10,11 @@ use super::error::SimpleBuildError;
 use super::nfa::SimpleLabeledNFA;
 use super::state::SimpleLabeledDFAState;
 
-/// A small reference implementation of a deterministic finite automaton.
+/// Dense deterministic finite automaton with **state labels** (`char` alphabet).
 ///
-/// `SimpleDFA` uses a dense state set `[0..state_count)` with transitions
-/// stored as `State × Input -> Option<State>`.
+/// States are `0..state_count`. Transitions are stored as one `HashMap<char, State>`
+/// per row; missing edges mean “undefined” until [`complete`](DeterministicFiniteLabeledAutomaton::complete).
+/// Final states are those with [`Some`] label from [`get_label`](LabeledAutomaton::get_label).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleLabeledDFA<Label: Hash + Eq + Clone> {
     pub(crate) initial: SimpleLabeledDFAState,
@@ -23,11 +24,11 @@ pub struct SimpleLabeledDFA<Label: Hash + Eq + Clone> {
 }
 
 impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
-    /// Construct a `SimpleDFA` without validating invariants.
+    /// Construct without validating invariants (tests and internal use).
     ///
-    /// This constructor is intended for internal use and tests. It assumes:
+    /// Assumes:
     /// - `initial < state_count`
-    /// - accepting states are within `0..state_count`
+    /// - every state in `labels` is within `0..state_count`
     /// - all transition endpoints are within range
     /// - transition symbols belong to `alphabet`
     /// - at most one transition per `(state, symbol)`
@@ -52,7 +53,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
         }
     }
 
-    /// Construct a `SimpleDFA` with validation.
+    /// Construct with validation.
     ///
     /// See [`SimpleBuildError`] for possible failures.
     pub fn try_new_labeled(
@@ -121,7 +122,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
             .collect()
     }
 
-    // TODO: docs
+    /// Map every stored label through `f`; structure and transitions unchanged.
     pub fn map_labels<NewLabel: Hash + Eq + Clone>(
         &self,
         f: impl Fn(Label) -> NewLabel,
@@ -138,7 +139,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
         }
     }
 
-    // TODO: docs
+    /// Replace all labels with `()` (same accepting states, unit labels).
     pub fn drop_labels(&self) -> SimpleLabeledDFA<()> {
         self.map_labels(|_| ())
     }

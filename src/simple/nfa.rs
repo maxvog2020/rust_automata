@@ -15,11 +15,10 @@ use crate::utility::{hashmap_of_unit_to_hashset, hashset_of_unit_to_hashmap};
 use super::SimpleBuildError;
 use super::state::SimpleNFAState;
 
-/// A small reference implementation of a nondeterministic finite automaton.
+/// [`SimpleLabeledNFA`](crate::labeled::simple::SimpleLabeledNFA) with `Label = ()`.
 ///
-/// `SimpleNFA` uses dense states `[0..state_count)` and stores transitions
-/// as sets:
-/// `State × Input -> HashSet<State>`.
+/// Dense `usize` states, `char` alphabet, `HashSet` successors per edge; accepting
+/// states are listed in constructors.
 pub type SimpleNFA = SimpleLabeledNFA<()>;
 
 impl SimpleNFA {
@@ -75,7 +74,7 @@ impl SimpleNFA {
         Self::try_new(2, [0], [1], alphabet, transitions)
     }
 
-    // TODO: docs
+    /// Same graph and acceptance, but every accepting state gets the given `label`.
     pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(
         &self,
         label: Label,

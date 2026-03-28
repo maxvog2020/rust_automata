@@ -1,13 +1,20 @@
 //! `automata_core`: small, explicit automata algorithms in Rust.
 //!
-//! This crate provides core operations over automata with a clear trait
-//! layer split into:
-//! - [`general`] (generic automaton concepts), and
-//! - [`finite`] (finiteness assumptions + algorithms that rely on them),
-//! - [`simple`] (concrete reference implementations: `SimpleDFA` / `SimpleNFA`).
+//! The crate is layered as follows:
 //!
-//! The focus is on deterministic and nondeterministic constructions
-//! **without ε-transitions in the public trait layer**.
+//! - **[`labeled::arbitrary`]**, **[`arbitrary`]**: core traits (`LabeledAutomaton`,
+//!   [`DeterministicLabeledAutomaton`](crate::labeled::arbitrary::DeterministicLabeledAutomaton),
+//!   …). Final states carry an optional label; `Label = ()` gives the usual
+//!   accepting-state encoding. **No assumption** that state sets or alphabets
+//!   are finite.
+//! - **[`labeled::finite`]**, **[`finite`]**: add enumerable state sets and
+//!   alphabets for algorithms (NFA closure ops, `to_dfa`, `complete`, `minimize`,
+//!   parsing, …).
+//! - **[`simple`]**: dense reference types [`SimpleDFA`](crate::simple::SimpleDFA) and [`SimpleNFA`](crate::simple::SimpleNFA)
+//!   (aliases for [`labeled::simple::SimpleLabeledDFA`]`<()` and
+//!   [`labeled::simple::SimpleLabeledNFA`]`<()`).
+//!
+//! There are **no ε-transitions** in the public trait layer.
 //!
 //! # Quick example
 //! Build a DFA for the language “even-length words over `{ 'a' }`” and test
@@ -29,10 +36,9 @@
 //! ```
 //!
 //! # Module organization
-//! - [`general`]: base `Automaton` trait and determinism/nondeterminism helpers.
-//! - [`finite`]: `FiniteAutomaton`, plus algorithms such as `to_dfa`, `complete`,
-//!   `minimize`.
-//! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
+//! - [`labeled::arbitrary`], [`labeled::finite`], [`labeled::simple`]: labeled
+//!   traits and `SimpleLabeledDFA` / `SimpleLabeledNFA`.
+//! - [`arbitrary`], [`finite`], [`simple`]: thin unlabeled entry points.
 //!
 pub(crate) mod utility;
 

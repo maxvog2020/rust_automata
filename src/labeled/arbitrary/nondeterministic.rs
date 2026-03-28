@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use crate::labeled::arbitrary::automaton::LabeledAutomaton;
 
-// TODO: docs
+/// Nondeterministic labeled automaton: a set of successors per step.
 pub trait NonDeterministicLabeledAutomaton<Label: Hash + Eq + Clone>:
     LabeledAutomaton<Label>
 {

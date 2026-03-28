@@ -1,10 +1,11 @@
-//! Concrete reference automata implementations.
+//! Unlabeled reference automata (`Label = ()`).
 //!
-//! The types in this module are intentionally small and explicit:
-//! - [`SimpleDFA`](dfa::SimpleDFA): deterministic transition table with
-//!   `State × Input -> Option<State>`.
-//! - [`SimpleNFA`](nfa::SimpleNFA): nondeterministic transition relation with
-//!   `State × Input -> set of states`.
+//! [`SimpleDFA`] and [`SimpleNFA`] are type aliases for
+//! [`SimpleLabeledDFA`](crate::labeled::simple::SimpleLabeledDFA) with
+//! `Label = ()` and [`SimpleLabeledNFA`](crate::labeled::simple::SimpleLabeledNFA)
+//! with `Label = ()`.
+//! Accepting states are those listed in constructors; use
+//! [`crate::labeled::simple`] for custom label types.
 
 mod dfa;
 mod nfa;
