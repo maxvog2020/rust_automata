@@ -1,5 +1,4 @@
 use crate::arbitrary::automaton::Automaton;
-use crate::arbitrary::deterministic::DeterministicAutomaton;
 
 /// Nondeterministic automaton semantics.
 ///
@@ -17,18 +16,4 @@ pub trait NonDeterministicAutomaton: Automaton {
         state: Self::State,
         input: &Self::Input,
     ) -> impl Iterator<Item = Self::State> + 'a;
-}
-
-impl<T: DeterministicAutomaton> NonDeterministicAutomaton for T {
-    fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
-        core::iter::once(self.initial_state())
-    }
-
-    fn successors<'a>(
-        &'a self,
-        state: Self::State,
-        input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a {
-        self.transition(state, input).into_iter()
-    }
 }

@@ -36,4 +36,6 @@
 //!
 pub mod arbitrary;
 pub mod finite;
+pub mod labeled;
 pub mod simple;
+pub mod wrapper;
