@@ -82,3 +82,11 @@ fn ldfa_a_plus_or_ident_state_set_labels_are_correct() {
     assert_eq!(label_of_aa, Some(0u8));
     assert_eq!(label_of_bb, Some(1u8));
 }
+
+#[test]
+fn ldfa_drop_labels() {
+    let ldfa = ldfa_ident_or_a_plus();
+    let ldfa_dropped_labels = ldfa.drop_labels();
+    assert_eq!(ldfa_dropped_labels.get_label_of_word(&['a', 'b']), Some(()));
+}
+

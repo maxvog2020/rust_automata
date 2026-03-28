@@ -138,12 +138,17 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
         }
     }
 
+    // TODO: docs
+    pub fn drop_labels(&self) -> SimpleLabeledDFA<()> {
+        self.map_labels(|_| ())
+    }
+
     /// Minimize using Hopcroft's algorithm.
     ///
     /// The automaton is completed first. The initial partition groups states by
     /// [`get_label`](LabeledAutomaton::get_label) (`Option<Label>`), not by
     /// accepting vs non-accepting alone.
-    pub fn hopcroft_minimize(&self) -> Self {
+    fn hopcroft_minimize(&self) -> Self {
         let dfa = self.completed();
         let n = dfa.transitions.len();
         let mut alphabet_sorted: Vec<char> = dfa.alphabet.iter().copied().collect();

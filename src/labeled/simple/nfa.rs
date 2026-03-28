@@ -112,6 +112,11 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
             transitions: self.transitions.clone(),
         }
     }
+
+    // TODO: docs
+    pub fn drop_labels(&self) -> SimpleLabeledNFA<()> {
+        self.map_labels(|_| ())
+    }
 }
 
 impl<Label: Hash + Eq + Clone> LabeledAutomaton<Label> for SimpleLabeledNFA<Label> {
