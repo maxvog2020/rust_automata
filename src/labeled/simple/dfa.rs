@@ -122,6 +122,11 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
             .collect()
     }
 
+    /// Get a vector of labels for each state.
+    pub fn get_labels_vec(&self) -> Vec<Option<Label>> {
+        self.states().map(|s| self.get_label(s)).collect()
+    }
+
     /// Map every stored label through `f`; structure and transitions unchanged.
     pub fn map_labels<NewLabel: Hash + Eq + Clone>(
         &self,

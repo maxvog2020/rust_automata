@@ -10,7 +10,7 @@ use std::hash::Hash;
 /// callers treat states where [`get_label`](LabeledAutomaton::get_label) returns
 /// [`Some`] as final / accepting when modeling classical languages. For
 /// `Label = ()`, that matches the usual “marked accepting states” encoding.
-pub trait LabeledAutomaton<Label: Hash + Eq + Clone> {
+pub trait LabeledAutomaton<Label: Eq + Clone> {
     /// State type.
     type State: Hash + Eq + Copy;
 
@@ -31,4 +31,12 @@ pub trait LabeledAutomaton<Label: Hash + Eq + Clone> {
 
     /// Get the label of `state`.
     fn get_label(&self, state: Self::State) -> Option<Label>;
+
+    /// Iterator over all labels of this automaton (not assumed finite).
+    fn labels<'a>(&'a self) -> impl Iterator<Item = Label> + 'a
+    where
+        Label: 'a,
+    {
+        self.states().flat_map(|s| self.get_label(s))
+    }
 }
