@@ -32,6 +32,11 @@ pub trait LabeledAutomaton<Label: Eq + Clone> {
     /// Get the label of `state`.
     fn get_label(&self, state: Self::State) -> Option<Label>;
 
+    /// Whether `state` has a label.
+    fn has_label(&self, state: Self::State) -> bool {
+        self.get_label(state).is_some()
+    }
+
     /// Iterator over all labels of this automaton (not assumed finite).
     fn labels<'a>(&'a self) -> impl Iterator<Item = Label> + 'a
     where

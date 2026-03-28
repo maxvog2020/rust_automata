@@ -151,7 +151,7 @@ fn longest_accept_prefix_lengths<
             };
 
             let mut max_len = 0;
-            if automaton.get_label(next_state).is_some() {
+            if automaton.has_label(next_state) {
                 max_len = 1;
             }
 

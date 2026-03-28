@@ -23,7 +23,7 @@ use crate::labeled::arbitrary::LabeledAutomaton;
 pub trait Automaton: LabeledAutomaton<()> {
     /// Whether `state` is an accepting/final state.
     fn is_accepting_state(&self, state: Self::State) -> bool {
-        self.get_label(state).is_some()
+        self.has_label(state)
     }
 
     /// Iterator over accepting states (those with [`Some`] label), derived from
