@@ -12,7 +12,7 @@ use crate::labeled::finite::FiniteLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 
 use super::dfa::SimpleDFA;
-use super::error::SimpleBuildError;
+use super::SimpleBuildError;
 use super::state::SimpleNFAState;
 
 /// A small reference implementation of a nondeterministic finite automaton.
@@ -194,28 +194,6 @@ impl SimpleNFA {
             self.alphabet.iter().copied(),
             edges,
         )
-    }
-
-    fn reachable_from_initial(&self) -> HashSet<SimpleNFAState> {
-        let mut seen = HashSet::new();
-        let mut q = VecDeque::new();
-        for &s in &self.initial {
-            q.push_back(s);
-        }
-        while let Some(s) = q.pop_front() {
-            if !seen.insert(s) {
-                continue;
-            }
-            if s >= self.transitions.len() {
-                continue;
-            }
-            for tos in self.transitions[s].values() {
-                for &t in tos {
-                    q.push_back(t);
-                }
-            }
-        }
-        seen
     }
 
     fn co_reachable(&self) -> HashSet<SimpleNFAState> {
@@ -410,7 +388,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn trimmed(&self) -> Self {
         self.restrict_states(
             &self
-                .reachable_from_initial()
+                .reachable_states_set()
                 .intersection(&self.co_reachable())
                 .copied()
                 .collect(),
@@ -422,7 +400,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     }
 
     fn accessible(&self) -> Self {
-        self.restrict_states(&self.reachable_from_initial())
+        self.restrict_states(&self.reachable_states_set())
     }
 
     fn co_accessible(&self) -> Self {

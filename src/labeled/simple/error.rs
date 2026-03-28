@@ -1,6 +1,6 @@
 use core::fmt;
 
-/// Error returned when building a `SimpleDFA` or `SimpleNFA`.
+/// Error returned when building a `SimpleLabeledDFA` or `SimpleLabeledNFA`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SimpleBuildError {
     /// The initial state must satisfy `initial < state_count`.

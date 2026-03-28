@@ -1,31 +1,28 @@
 use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 
-use crate::arbitrary::Automaton;
-use crate::arbitrary::DeterministicAutomaton;
-use crate::finite::DeterministicFiniteAutomaton;
-use crate::finite::FiniteAutomaton;
 use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
 use crate::labeled::arbitrary::LabeledAutomaton;
 use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 use crate::labeled::finite::FiniteLabeledAutomaton;
 
-use super::SimpleBuildError;
-use super::nfa::SimpleNFA;
-use super::state::SimpleDFAState;
+use super::error::SimpleBuildError;
+use super::nfa::SimpleLabeledNFA;
+use super::state::SimpleLabeledDFAState;
 
 /// A small reference implementation of a deterministic finite automaton.
 ///
 /// `SimpleDFA` uses a dense state set `[0..state_count)` with transitions
 /// stored as `State × Input -> Option<State>`.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SimpleDFA {
-    initial: SimpleDFAState,
-    accepting: HashSet<SimpleDFAState>,
+pub struct SimpleLabeledDFA<Label: Hash + Eq + Clone> {
+    initial: SimpleLabeledDFAState,
+    labels: HashMap<SimpleLabeledDFAState, Label>,
     alphabet: HashSet<char>,
-    transitions: Vec<HashMap<char, SimpleDFAState>>,
+    transitions: Vec<HashMap<char, SimpleLabeledDFAState>>,
 }
 
-impl SimpleDFA {
+impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
     /// Construct a `SimpleDFA` without validating invariants.
     ///
     /// This constructor is intended for internal use and tests. It assumes:
@@ -36,20 +33,20 @@ impl SimpleDFA {
     /// - at most one transition per `(state, symbol)`
     pub fn new_unchecked(
         state_count: usize,
-        initial: SimpleDFAState,
-        accepting: impl IntoIterator<Item = SimpleDFAState>,
+        initial: SimpleLabeledDFAState,
+        labels: impl IntoIterator<Item = (SimpleLabeledDFAState, Label)>,
         alphabet: impl IntoIterator<Item = char>,
-        transitions: impl IntoIterator<Item = (SimpleDFAState, char, SimpleDFAState)>,
+        transitions: impl IntoIterator<Item = (SimpleLabeledDFAState, char, SimpleLabeledDFAState)>,
     ) -> Self {
         let alphabet: HashSet<char> = alphabet.into_iter().collect();
-        let accepting: HashSet<_> = accepting.into_iter().collect();
+        let labels: HashMap<_, _> = labels.into_iter().collect();
         let mut rows = vec![HashMap::new(); state_count];
         for (q, a, p) in transitions {
             rows[q].insert(a, p);
         }
         Self {
             initial,
-            accepting,
+            labels,
             alphabet,
             transitions: rows,
         }
@@ -60,10 +57,10 @@ impl SimpleDFA {
     /// See [`SimpleBuildError`] for possible failures.
     pub fn try_new(
         state_count: usize,
-        initial: SimpleDFAState,
-        accepting: impl IntoIterator<Item = SimpleDFAState>,
+        initial: SimpleLabeledDFAState,
+        labels: impl IntoIterator<Item = (SimpleLabeledDFAState, Label)>,
         alphabet: impl IntoIterator<Item = char>,
-        transitions: impl IntoIterator<Item = (SimpleDFAState, char, SimpleDFAState)>,
+        transitions: impl IntoIterator<Item = (SimpleLabeledDFAState, char, SimpleLabeledDFAState)>,
     ) -> Result<Self, SimpleBuildError> {
         if initial >= state_count {
             return Err(SimpleBuildError::InitialOutOfRange {
@@ -72,8 +69,8 @@ impl SimpleDFA {
             });
         }
         let alphabet: HashSet<char> = alphabet.into_iter().collect();
-        let accepting: HashSet<_> = accepting.into_iter().collect();
-        for &s in &accepting {
+        let labels: HashMap<_, _> = labels.into_iter().collect();
+        for (&s, _) in &labels {
             if s >= state_count {
                 return Err(SimpleBuildError::StateOutOfRange {
                     state: s,
@@ -104,7 +101,7 @@ impl SimpleDFA {
         }
         Ok(Self {
             initial,
-            accepting,
+            labels,
             alphabet,
             transitions: rows,
         })
@@ -114,12 +111,12 @@ impl SimpleDFA {
     ///
     /// Each cell contains `Some(next_state)` if the transition exists for the
     /// symbol, otherwise `None`.
-    pub fn to_matrix(&self) -> Vec<Vec<Option<SimpleDFAState>>> {
+    pub fn to_matrix(&self) -> Vec<Vec<Option<SimpleLabeledDFAState>>> {
         self.states()
             .map(|s| {
                 self.alphabet()
                     .map(|a| self.transition(s, &a))
-                    .collect::<Vec<Option<SimpleDFAState>>>()
+                    .collect::<Vec<Option<SimpleLabeledDFAState>>>()
             })
             .collect()
     }
@@ -142,15 +139,15 @@ impl SimpleDFA {
         }
         Self {
             initial: self.initial,
-            accepting: self.accepting.clone(),
+            labels: self.labels.clone(),
             alphabet: self.alphabet.clone(),
             transitions: rows,
         }
     }
 }
 
-impl LabeledAutomaton<()> for SimpleDFA {
-    type State = SimpleDFAState;
+impl<Label: Hash + Eq + Clone> LabeledAutomaton<Label> for SimpleLabeledDFA<Label> {
+    type State = SimpleLabeledDFAState;
     type Input = char;
 
     fn states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
@@ -169,34 +166,18 @@ impl LabeledAutomaton<()> for SimpleDFA {
         state == self.initial
     }
     
-    fn get_label(&self, state: Self::State) -> Option<()> {
-        if self.accepting.contains(&state) {
-            Some(())
-        } else {
-            None
-        }
+    fn get_label(&self, state: Self::State) -> Option<Label> {
+        self.labels.get(&state).cloned()
     }
 }
 
-impl Automaton for SimpleDFA {
-    fn is_accepting_state(&self, state: Self::State) -> bool {
-        self.accepting.contains(&state)
-    }
-}
-
-impl FiniteLabeledAutomaton<()> for SimpleDFA {
+impl<Label: Hash + Eq + Clone> FiniteLabeledAutomaton<Label> for SimpleLabeledDFA<Label> {
     fn alphabet_set(&self) -> HashSet<Self::Input> {
         self.alphabet.clone()
     }
 }
 
-impl FiniteAutomaton for SimpleDFA {
-    fn accepting_states_set(&self) -> HashSet<Self::State> {
-        self.accepting.clone()
-    }
-}
-
-impl DeterministicLabeledAutomaton<()> for SimpleDFA {
+impl<Label: Hash + Eq + Clone> DeterministicLabeledAutomaton<Label> for SimpleLabeledDFA<Label> {
     fn initial_state(&self) -> Self::State {
         self.initial
     }
@@ -206,10 +187,8 @@ impl DeterministicLabeledAutomaton<()> for SimpleDFA {
     }
 }
 
-impl DeterministicAutomaton for SimpleDFA {}
-
-impl DeterministicFiniteLabeledAutomaton<()> for SimpleDFA {
-    type CorrespondingNFA = SimpleNFA;
+impl<Label: Hash + Eq + Clone> DeterministicFiniteLabeledAutomaton<Label> for SimpleLabeledDFA<Label> {
+    type CorrespondingNFA = SimpleLabeledNFA<Label>;
     
     fn to_nfa(&self) -> Self::CorrespondingNFA {
         let edges: Vec<(usize, char, usize)> = self
@@ -219,10 +198,10 @@ impl DeterministicFiniteLabeledAutomaton<()> for SimpleDFA {
             .flat_map(|(q, transition)| transition.iter().map(move |(&a, &p)| (q, a, p)))
             .collect();
 
-        SimpleNFA::new_unchecked(
+        SimpleLabeledNFA::new_unchecked(
             self.transitions.len(),
             [self.initial],
-            self.accepting.iter().copied(),
+            self.labels.iter().map(|(s, l)| (*s, l.clone())),
             self.alphabet.iter().copied(),
             edges,
         )
@@ -233,9 +212,7 @@ impl DeterministicFiniteLabeledAutomaton<()> for SimpleDFA {
     }
     
     fn minimize(&self) -> Self {
-        // TODO: implement
-        self.clone()
+        todo!()
     }
 }
 
-impl DeterministicFiniteAutomaton for SimpleDFA {}
