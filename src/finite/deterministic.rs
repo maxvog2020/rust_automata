@@ -1,6 +1,6 @@
+use crate::arbitrary::DeterministicAutomaton;
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use crate::arbitrary::DeterministicAutomaton;
 
 /// Deterministic finite automata (DFA) operations over finite state sets.
 ///
@@ -10,8 +10,12 @@ use crate::arbitrary::DeterministicAutomaton;
 /// acceptance (via [`DeterministicAutomaton::accepts`]), completion, and
 /// minimization.
 pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton {
-    type CorrespondingNFA: NonDeterministicFiniteAutomaton<State = Self::State, Input = Self::Input, CorrespondingDFA = Self>;
-    
+    type CorrespondingNFA: NonDeterministicFiniteAutomaton<
+            State = Self::State,
+            Input = Self::Input,
+            CorrespondingDFA = Self,
+        >;
+
     /// Convert this DFA into an equivalent NFA with the same state set and step
     /// semantics: for any word `w`, the run from the initial state ends in state
     /// `q` in the DFA iff it ends in `q` in the NFA.

@@ -1,9 +1,9 @@
 #[path = "common/mod.rs"]
 mod common;
 
-use automata_core::finite::DeterministicFiniteAutomaton;
 use automata_core::arbitrary::Automaton;
 use automata_core::arbitrary::DeterministicAutomaton;
+use automata_core::finite::DeterministicFiniteAutomaton;
 use automata_core::simple::SimpleDFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
@@ -297,4 +297,3 @@ fn dfa_to_matrix_complete_single_symbol() {
     // Sink loops to itself on 'a'
     assert_eq!(m[2][0], Some(2));
 }
-

@@ -1,11 +1,11 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
-use crate::finite::FiniteAutomaton;
-use crate::finite::DeterministicFiniteAutomaton;
-use crate::finite::NonDeterministicFiniteAutomaton;
 use crate::arbitrary::Automaton;
 use crate::arbitrary::DeterministicAutomaton;
 use crate::arbitrary::NonDeterministicAutomaton;
+use crate::finite::DeterministicFiniteAutomaton;
+use crate::finite::FiniteAutomaton;
+use crate::finite::NonDeterministicFiniteAutomaton;
 
 use super::dfa::SimpleDFA;
 use super::error::SimpleBuildError;
@@ -38,7 +38,8 @@ impl SimpleNFA {
         let alphabet: HashSet<char> = alphabet.into_iter().collect();
         let initial: HashSet<_> = initial.into_iter().collect();
         let accepting: HashSet<_> = accepting.into_iter().collect();
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); state_count];
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
+            vec![HashMap::new(); state_count];
         for (q, a, p) in transitions {
             rows[q].entry(a).or_default().insert(p);
         }
@@ -81,10 +82,7 @@ impl SimpleNFA {
                 });
             }
             if p >= state_count {
-                return Err(SimpleBuildError::TransitionToOutOfRange {
-                    to: p,
-                    state_count,
-                });
+                return Err(SimpleBuildError::TransitionToOutOfRange { to: p, state_count });
             }
             if !alphabet.contains(&a) {
                 return Err(SimpleBuildError::SymbolNotInAlphabet(a));
@@ -119,10 +117,7 @@ impl SimpleNFA {
                 return Err(SimpleBuildError::SymbolNotInAlphabet(c));
             }
         }
-        let transitions: Vec<_> = symbols
-            .into_iter()
-            .map(|c| (0usize, c, 1usize))
-            .collect();
+        let transitions: Vec<_> = symbols.into_iter().map(|c| (0usize, c, 1usize)).collect();
         Self::try_new(2, [0], [1], alphabet, transitions)
     }
 
@@ -302,7 +297,7 @@ impl NonDeterministicAutomaton for SimpleNFA {
 
 impl NonDeterministicFiniteAutomaton for SimpleNFA {
     type CorrespondingDFA = SimpleDFA;
-    
+
     fn to_dfa(&self) -> SimpleDFA {
         self.to_simple_dfa()
     }
@@ -310,11 +305,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn union(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
-        let ab: HashSet<char> = self
-            .alphabet
-            .union(&other.alphabet)
-            .copied()
-            .collect();
+        let ab: HashSet<char> = self.alphabet.union(&other.alphabet).copied().collect();
         let mut rows = self.transitions.clone();
         rows.resize(na + nb, HashMap::new());
         for q in 0..nb {
@@ -340,11 +331,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
     fn concatenate(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
-        let ab: HashSet<char> = self
-            .alphabet
-            .union(&other.alphabet)
-            .copied()
-            .collect();
+        let ab: HashSet<char> = self.alphabet.union(&other.alphabet).copied().collect();
         let mut rows = self.transitions.clone();
         rows.resize(na + nb, HashMap::new());
         for q in 0..nb {
@@ -365,10 +352,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
             }
         }
         // if `other` accepts the empty word
-        let other_accepts_empty = other
-            .initial
-            .iter()
-            .any(|s| other.accepting.contains(s));
+        let other_accepts_empty = other.initial.iter().any(|s| other.accepting.contains(s));
         let mut acc: HashSet<_> = other.accepting.iter().map(|&s| s + na).collect();
         if other_accepts_empty {
             acc.extend(self.accepting.iter().copied());
@@ -421,8 +405,7 @@ impl SimpleNFA {
         let n = self.transitions.len();
         let new_n = n + 1;
         let shift = |q: usize| q + 1;
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
-            vec![HashMap::new(); new_n];
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); new_n];
 
         for q in 0..n {
             for (a, tos) in &self.transitions[q] {
@@ -464,10 +447,8 @@ impl SimpleNFA {
 
     fn complement_inner(&self) -> SimpleNFA {
         let d = self.to_dfa().complete();
-        let accepting: HashSet<SimpleNFAState> = d
-            .states()
-            .filter(|&q| !d.is_accepting_state(q))
-            .collect();
+        let accepting: HashSet<SimpleNFAState> =
+            d.states().filter(|&q| !d.is_accepting_state(q)).collect();
         let mut edges = Vec::new();
         for q in d.states() {
             for a in d.alphabet() {
@@ -491,13 +472,7 @@ impl SimpleNFA {
 
     fn restrict_states(&self, keep: &HashSet<SimpleNFAState>) -> SimpleNFA {
         if keep.is_empty() {
-            return SimpleNFA::new_unchecked(
-                0,
-                [],
-                [],
-                self.alphabet.iter().copied(),
-                [],
-            );
+            return SimpleNFA::new_unchecked(0, [], [], self.alphabet.iter().copied(), []);
         }
         let mut sorted: Vec<_> = keep.iter().copied().collect();
         sorted.sort_unstable();

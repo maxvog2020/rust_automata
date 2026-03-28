@@ -12,7 +12,11 @@ pub trait NonDeterministicAutomaton: Automaton {
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a;
 
     /// Successors of `state` under `input`.
-    fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a;
+    fn successors<'a>(
+        &'a self,
+        state: Self::State,
+        input: &Self::Input,
+    ) -> impl Iterator<Item = Self::State> + 'a;
 }
 
 impl<T: DeterministicAutomaton> NonDeterministicAutomaton for T {
@@ -20,7 +24,11 @@ impl<T: DeterministicAutomaton> NonDeterministicAutomaton for T {
         core::iter::once(self.initial_state())
     }
 
-    fn successors<'a>(&'a self, state: Self::State, input: &Self::Input) -> impl Iterator<Item = Self::State> + 'a {
+    fn successors<'a>(
+        &'a self,
+        state: Self::State,
+        input: &Self::Input,
+    ) -> impl Iterator<Item = Self::State> + 'a {
         self.transition(state, input).into_iter()
     }
 }

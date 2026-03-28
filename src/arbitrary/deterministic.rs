@@ -40,4 +40,3 @@ pub trait DeterministicAutomaton: Automaton {
         self.is_accepting_state(last_state)
     }
 }
-

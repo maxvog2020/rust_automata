@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::finite::FiniteAutomaton;
-use crate::finite::DeterministicFiniteAutomaton;
 use crate::arbitrary::Automaton;
 use crate::arbitrary::DeterministicAutomaton;
+use crate::finite::DeterministicFiniteAutomaton;
+use crate::finite::FiniteAutomaton;
 
 use super::error::SimpleBuildError;
 use super::nfa::SimpleNFA;
@@ -86,10 +86,7 @@ impl SimpleDFA {
                 });
             }
             if p >= state_count {
-                return Err(SimpleBuildError::TransitionToOutOfRange {
-                    to: p,
-                    state_count,
-                });
+                return Err(SimpleBuildError::TransitionToOutOfRange { to: p, state_count });
             }
             if !alphabet.contains(&a) {
                 return Err(SimpleBuildError::SymbolNotInAlphabet(a));
@@ -199,12 +196,9 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
     fn to_nfa(&self) -> SimpleNFA {
         let edges: Vec<(usize, char, usize)> = self
             .transitions
-            .iter().enumerate()
-            .flat_map(|(q, transition)| {
-                transition
-                    .iter()
-                    .map(move |(&a, &p)| (q, a, p))
-            })
+            .iter()
+            .enumerate()
+            .flat_map(|(q, transition)| transition.iter().map(move |(&a, &p)| (q, a, p)))
             .collect();
 
         SimpleNFA::new_unchecked(

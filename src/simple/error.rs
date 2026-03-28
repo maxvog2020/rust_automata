@@ -4,33 +4,18 @@ use core::fmt;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SimpleBuildError {
     /// The initial state must satisfy `initial < state_count`.
-    InitialOutOfRange {
-        initial: usize,
-        state_count: usize,
-    },
+    InitialOutOfRange { initial: usize, state_count: usize },
     /// A state in `accepting` must satisfy `state < state_count`.
-    StateOutOfRange {
-        state: usize,
-        state_count: usize,
-    },
+    StateOutOfRange { state: usize, state_count: usize },
     /// A transition source must satisfy `from < state_count`.
-    TransitionFromOutOfRange {
-        from: usize,
-        state_count: usize,
-    },
+    TransitionFromOutOfRange { from: usize, state_count: usize },
     /// A transition target must satisfy `to < state_count`.
-    TransitionToOutOfRange {
-        to: usize,
-        state_count: usize,
-    },
+    TransitionToOutOfRange { to: usize, state_count: usize },
     /// Transition symbol must be part of the declared alphabet.
     SymbolNotInAlphabet(char),
     /// Deterministic automata must not have duplicate transitions for
     /// `(state, symbol)`.
-    DuplicateDeterministicTransition {
-        state: usize,
-        symbol: char,
-    },
+    DuplicateDeterministicTransition { state: usize, symbol: char },
 }
 
 impl fmt::Display for SimpleBuildError {
@@ -43,10 +28,7 @@ impl fmt::Display for SimpleBuildError {
                 f,
                 "initial state {initial} is out of range for state_count {state_count}"
             ),
-            SimpleBuildError::StateOutOfRange {
-                state,
-                state_count,
-            } => write!(
+            SimpleBuildError::StateOutOfRange { state, state_count } => write!(
                 f,
                 "state {state} is out of range for state_count {state_count}"
             ),

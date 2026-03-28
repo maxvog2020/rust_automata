@@ -11,4 +11,3 @@ mod nondeterministic;
 pub use automaton::Automaton;
 pub use deterministic::DeterministicAutomaton;
 pub use nondeterministic::NonDeterministicAutomaton;
-

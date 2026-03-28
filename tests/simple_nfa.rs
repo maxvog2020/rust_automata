@@ -3,9 +3,9 @@ mod common;
 
 use std::collections::HashSet;
 
-use automata_core::{finite::NonDeterministicFiniteAutomaton, simple::SimpleBuildError};
 use automata_core::arbitrary::{Automaton, DeterministicAutomaton, NonDeterministicAutomaton};
 use automata_core::simple::SimpleNFA;
+use automata_core::{finite::NonDeterministicFiniteAutomaton, simple::SimpleBuildError};
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};
 
@@ -488,7 +488,10 @@ fn complex_union_is_symmetric_on_samples() {
     for sample in [&w, &r] {
         assert_eq!(accepts_nfa(&a, sample), accepts_nfa(&b, sample));
     }
-    assert_eq!(accepts_nfa(&a, &chars("zzz")), accepts_nfa(&b, &chars("zzz")));
+    assert_eq!(
+        accepts_nfa(&a, &chars("zzz")),
+        accepts_nfa(&b, &chars("zzz"))
+    );
 }
 
 #[test]
@@ -499,12 +502,7 @@ fn complex_star_star_accepts_same_samples_as_star() {
     let u = forward.union(&revw);
     let once = u.star();
     let twice = once.star();
-    let samples = [
-        chars(""),
-        w.clone(),
-        reverse_word(&w),
-        chars("abab"),
-    ];
+    let samples = [chars(""), w.clone(), reverse_word(&w), chars("abab")];
     for s in &samples {
         assert_eq!(accepts_nfa(&once, s), accepts_nfa(&twice, s));
     }
@@ -562,7 +560,9 @@ fn try_new_singleton_words_errors_when_listed_symbol_missing_from_alphabet() {
 
 #[test]
 fn try_new_singleton_words_empty_symbol_set_has_no_accepting_run_from_initial() {
-    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], []).unwrap().to_dfa();
+    let dfa = SimpleNFA::try_new_singleton_words(['a', 'b'], [])
+        .unwrap()
+        .to_dfa();
     assert!(!dfa.accepts(&[]));
     assert!(!dfa.accepts(&['a']));
 }

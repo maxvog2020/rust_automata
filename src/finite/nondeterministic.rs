@@ -1,8 +1,8 @@
 use std::collections::{HashSet, VecDeque};
 
+use crate::arbitrary::NonDeterministicAutomaton;
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::arbitrary::NonDeterministicAutomaton;
 
 /// Finite nondeterministic automata operations.
 ///
@@ -11,7 +11,11 @@ use crate::arbitrary::NonDeterministicAutomaton;
 /// together with determinization.
 pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton {
     /// Deterministic representation obtained by determinization.
-    type CorrespondingDFA: DeterministicFiniteAutomaton<State = Self::State, Input = Self::Input, CorrespondingNFA = Self>;
+    type CorrespondingDFA: DeterministicFiniteAutomaton<
+            State = Self::State,
+            Input = Self::Input,
+            CorrespondingNFA = Self,
+        >;
 
     /// Determinize this NFA into a DFA (subset construction).
     fn to_dfa(&self) -> Self::CorrespondingDFA;
@@ -55,29 +59,32 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     ///
     /// Returns `None` if the slice is empty.
     fn union_all(automata: &[Self]) -> Option<Self>
-        where Self: Clone
+    where
+        Self: Clone,
     {
         clone_reduce(automata, |a, b| a.union(b))
     }
-    
+
     /// Concatenation across many NFAs.
     ///
     /// Computes `L(a0) · L(a1) · ...` in iteration order.
     ///
     /// Returns `None` if the slice is empty.
-    fn concatenate_all(automata: &[Self]) -> Option<Self> 
-        where Self: Clone
+    fn concatenate_all(automata: &[Self]) -> Option<Self>
+    where
+        Self: Clone,
     {
         clone_reduce(automata, |a, b| a.concatenate(b))
     }
-    
+
     /// Language intersection across many NFAs.
     ///
     /// Computes `L(a0) ∩ L(a1) ∩ ...` for every automaton produced by `automata`.
     ///
     /// Returns `None` if the slice is empty.
-    fn intersect_all(automata: &[Self]) -> Option<Self> 
-        where Self: Clone
+    fn intersect_all(automata: &[Self]) -> Option<Self>
+    where
+        Self: Clone,
     {
         clone_reduce(automata, |a, b| a.intersection(b))
     }
@@ -152,7 +159,10 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
 
     /// Whether the recognized language is empty.
     fn is_empty_language(&self) -> bool {
-        !self.reachable_states_set().iter().any(|&s| self.is_accepting_state(s))
+        !self
+            .reachable_states_set()
+            .iter()
+            .any(|&s| self.is_accepting_state(s))
     }
 
     /// Check whether `L(self) ⊆ L(other)`.
@@ -171,4 +181,3 @@ fn clone_reduce<T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Option<T> {
     let item = iter.next()?;
     Some(iter.fold(item.clone(), f))
 }
-

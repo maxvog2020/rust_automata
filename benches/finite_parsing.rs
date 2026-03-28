@@ -4,7 +4,7 @@ use std::iter::repeat_n;
 use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::parse_by_longest_match;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 const LONG: usize = 1200;
 const LONG_ALT: usize = 1180;
@@ -15,19 +15,12 @@ const LONG_ALT: usize = 1180;
 
 fn word_ba_star(len: usize) -> Vec<char> {
     assert!(len >= 1);
-    std::iter::once('b')
-        .chain(repeat_n('a', len - 1))
-        .collect()
+    std::iter::once('b').chain(repeat_n('a', len - 1)).collect()
 }
 
 fn word_repeated_ba_plus(target_len: usize) -> Vec<char> {
     let chunk: Vec<char> = std::iter::once('b').chain(repeat_n('a', 4)).collect();
-    chunk
-        .iter()
-        .copied()
-        .cycle()
-        .take(target_len)
-        .collect()
+    chunk.iter().copied().cycle().take(target_len).collect()
 }
 
 fn word_alternating_ca_ba(target_len: usize) -> Vec<char> {
@@ -119,20 +112,26 @@ fn bench_parse_ba_star(c: &mut Criterion) {
 fn bench_parse_ca_or_ba_plus(c: &mut Criterion) {
     let dfa = dfa_ca_plus_or_ba_plus();
     let word = word_repeated_ba_plus(LONG_ALT);
-    c.bench_function("parse (ca+)|(ba+) DFA (built+min), ~1180 chars ba+ tokens", |b| {
-        b.iter(|| {
-            let r = parse_by_longest_match(black_box(&dfa), black_box(word.as_slice()));
-            black_box(r)
-        });
-    });
+    c.bench_function(
+        "parse (ca+)|(ba+) DFA (built+min), ~1180 chars ba+ tokens",
+        |b| {
+            b.iter(|| {
+                let r = parse_by_longest_match(black_box(&dfa), black_box(word.as_slice()));
+                black_box(r)
+            });
+        },
+    );
 
     let word2 = word_alternating_ca_ba(LONG_ALT);
-    c.bench_function("parse (ca+)|(ba+) DFA (built+min), ~1180 chars c/b alt", |b| {
-        b.iter(|| {
-            let r = parse_by_longest_match(black_box(&dfa), black_box(word2.as_slice()));
-            black_box(r)
-        });
-    });
+    c.bench_function(
+        "parse (ca+)|(ba+) DFA (built+min), ~1180 chars c/b alt",
+        |b| {
+            b.iter(|| {
+                let r = parse_by_longest_match(black_box(&dfa), black_box(word2.as_slice()));
+                black_box(r)
+            });
+        },
+    );
 }
 
 fn bench_parse_nat_ops_space(c: &mut Criterion) {
@@ -148,9 +147,10 @@ fn bench_parse_nat_ops_space(c: &mut Criterion) {
 
 fn bench_parse_singleton_words_dfa(c: &mut Criterion) {
     let alphabet: Vec<char> = ('a'..='z').chain('0'..='9').collect();
-    let dfa = SimpleNFA::try_new_singleton_words(alphabet.iter().copied(), alphabet.iter().copied())
-        .unwrap()
-        .to_minimized_dfa();
+    let dfa =
+        SimpleNFA::try_new_singleton_words(alphabet.iter().copied(), alphabet.iter().copied())
+            .unwrap()
+            .to_minimized_dfa();
     let word: Vec<char> = std::iter::repeat("a7k2m9p1")
         .flat_map(|s| s.chars())
         .take(LONG)

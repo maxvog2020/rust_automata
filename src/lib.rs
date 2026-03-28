@@ -34,6 +34,6 @@
 //!   `minimize`.
 //! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
 //!
-pub mod finite;
 pub mod arbitrary;
+pub mod finite;
 pub mod simple;
