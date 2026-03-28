@@ -89,4 +89,3 @@ fn ldfa_drop_labels() {
     let ldfa_dropped_labels = ldfa.drop_labels();
     assert_eq!(ldfa_dropped_labels.get_label_of_word(&['a', 'b']), Some(()));
 }
-

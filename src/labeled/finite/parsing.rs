@@ -29,7 +29,7 @@ use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 /// One token emitted by [`parse_by_longest_match`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseResult<State> {
-    /// State **after** consuming this token (configuration after its last symbol).
+    /// State **after** consuming this token.
     pub state: State,
     /// Start index of this token in the input word (inclusive).
     pub position_in_word: usize,
@@ -37,43 +37,17 @@ pub struct ParseResult<State> {
     pub size: usize,
 }
 
-fn longest_accept_prefix_lengths<
-    Label: Hash + Eq + Clone,
-    A: DeterministicFiniteLabeledAutomaton<Label>,
->(
-    automaton: &A,
-    word: &[A::Input],
-) -> HashMap<A::State, Vec<usize>> {
-    let word_length = word.len();
-    let states = automaton.states_set();
-
-    let mut dp: HashMap<A::State, Vec<usize>> = HashMap::new();
-    for &state in &states {
-        dp.insert(state, vec![0; word_length + 1]);
-    }
-
-    for i in (0..word_length).rev() {
-        for &state in &states {
-            let input = &word[i];
-            let Some(next_state) = automaton.transition(state, input) else {
-                continue;
-            };
-
-            let mut max_len = 0;
-            if automaton.get_label(next_state).is_some() {
-                max_len = 1;
-            }
-
-            let next_value = dp.get(&next_state).unwrap()[i + 1];
-            if next_value > 0 {
-                max_len = 1 + next_value;
-            }
-
-            dp.get_mut(&state).unwrap()[i] = max_len;
-        }
-    }
-
-    dp
+/// One token emitted by [`parse_by_longest_match_labeled`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LabeledParseResult<State, Label> {
+    /// State **after** consuming this token.
+    pub state: State,
+    /// Start index of this token in the input word (inclusive).
+    pub position_in_word: usize,
+    /// Number of input symbols in this token.
+    pub size: usize,
+    /// Label of the state **after** consuming this token.
+    pub label: Label,
 }
 
 /// Split `word` into tokens using longest-match, **from [`initial_state`] each
@@ -118,4 +92,77 @@ pub fn parse_by_longest_match<
     }
 
     Some(result)
+}
+
+/// Split `word` into tokens using longest-match, **from [`initial_state`] each
+/// time** after a token is consumed, and return the labels of the tokens.
+///
+/// [`initial_state`]: crate::labeled::arbitrary::DeterministicLabeledAutomaton::initial_state
+pub fn parse_by_longest_match_labeled<
+    Label: Hash + Eq + Clone,
+    A: DeterministicFiniteLabeledAutomaton<Label>,
+>(
+    automaton: &A,
+    word: &[A::Input],
+) -> Option<Vec<LabeledParseResult<A::State, Label>>> {
+    let tokens = parse_by_longest_match(automaton, word)?;
+    let result = tokens
+        .into_iter()
+        .map(|token| {
+            let label = automaton.get_label(token.state).unwrap();
+            enrich_with_label(token, label)
+        })
+        .collect();
+    Some(result)
+}
+
+fn enrich_with_label<State, Label>(
+    result: ParseResult<State>,
+    label: Label,
+) -> LabeledParseResult<State, Label> {
+    LabeledParseResult {
+        state: result.state,
+        position_in_word: result.position_in_word,
+        size: result.size,
+        label: label,
+    }
+}
+
+fn longest_accept_prefix_lengths<
+    Label: Hash + Eq + Clone,
+    A: DeterministicFiniteLabeledAutomaton<Label>,
+>(
+    automaton: &A,
+    word: &[A::Input],
+) -> HashMap<A::State, Vec<usize>> {
+    let word_length = word.len();
+    let states = automaton.states_set();
+
+    let mut dp: HashMap<A::State, Vec<usize>> = HashMap::new();
+    for &state in &states {
+        dp.insert(state, vec![0; word_length + 1]);
+    }
+
+    for i in (0..word_length).rev() {
+        for &state in &states {
+            let input = &word[i];
+            let Some(next_state) = automaton.transition(state, input) else {
+                continue;
+            };
+
+            let mut max_len = 0;
+            if automaton.get_label(next_state).is_some() {
+                max_len = 1;
+            }
+
+            let next_value = dp.get(&next_state).unwrap()[i + 1];
+            if next_value > 0 {
+                max_len = 1 + next_value;
+            }
+
+            dp.get_mut(&state).unwrap()[i] = max_len;
+        }
+    }
+
+    dp
 }
