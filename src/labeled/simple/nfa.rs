@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::hash::Hash;
 
 use crate::labeled::arbitrary::LabeledAutomaton;
@@ -165,8 +165,8 @@ impl<Label: Hash + Eq + Clone> NonDeterministicLabeledAutomaton<Label> for Simpl
 impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label> for SimpleLabeledNFA<Label> {
     type CorrespondingDFA = SimpleLabeledDFA<Label>;
 
-    fn to_dfa_by(&self, _combine: impl Fn(Label, Label) -> Label) -> Self::CorrespondingDFA {
-        self.to_simple_dfa()
+    fn to_dfa_by(&self, combine: impl Fn(Label, Label) -> Label) -> Self::CorrespondingDFA {
+        self.to_simple_dfa(combine)
     }
     
     fn union(&self, _other: &Self) -> Self {
@@ -175,57 +175,75 @@ impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label> for
 }
 
 impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
-    fn to_simple_dfa(&self) -> SimpleLabeledDFA<Label> {
-        todo!()
-        // let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
-        // alphabet_vec.sort_unstable();
-        // let start: BTreeSet<SimpleLabeledNFAState> = self.initial.iter().copied().collect();
-        // let mut subset_to_id: HashMap<BTreeSet<SimpleLabeledNFAState>, usize> = HashMap::new();
-        // let mut queue: VecDeque<BTreeSet<SimpleLabeledNFAState>> = VecDeque::new();
-        // subset_to_id.insert(start.clone(), 0);
-        // let mut next_id = 1usize;
-        // queue.push_back(start);
+    /// Subset construction. Each DFA state is an `NFA` state set; its label is
+    /// the fold of all labels on member states using `combine`, in ascending
+    /// NFA state order (deterministic when `combine` is not associative).
+    fn to_simple_dfa(&self, combine: impl Fn(Label, Label) -> Label) -> SimpleLabeledDFA<Label> {
+        let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
+        alphabet_vec.sort_unstable();
 
-        // let mut trans_out: HashMap<(usize, char), usize> = HashMap::new();
+        let start: BTreeSet<SimpleLabeledNFAState> = self.initial.iter().copied().collect();
+        let mut subset_to_id: HashMap<BTreeSet<SimpleLabeledNFAState>, usize> = HashMap::new();
+        let mut queue: VecDeque<BTreeSet<SimpleLabeledNFAState>> = VecDeque::new();
+        subset_to_id.insert(start.clone(), 0);
+        let mut next_id = 1usize;
+        queue.push_back(start.clone());
 
-        // while let Some(sub) = queue.pop_front() {
-        //     let sid = subset_to_id[&sub];
-        //     for &a in &alphabet_vec {
-        //         let mut dest: BTreeSet<SimpleLabeledNFAState> = BTreeSet::new();
-        //         for &s in &sub {
-        //             if let Some(tos) = self.transitions[s].get(&a) {
-        //                 dest.extend(tos.iter().copied());
-        //             }
-        //         }
-        //         let tid = if let Some(&id) = subset_to_id.get(&dest) {
-        //             id
-        //         } else {
-        //             let id = next_id;
-        //             next_id += 1;
-        //             subset_to_id.insert(dest.clone(), id);
-        //             queue.push_back(dest);
-        //             id
-        //         };
-        //         trans_out.insert((sid, a), tid);
-        //     }
-        // }
+        let mut dfa_labels: HashMap<usize, Label> = HashMap::new();
+        if let Some(l) = Self::combined_label_for_subset(&start, &self.labels, &combine) {
+            dfa_labels.insert(0, l);
+        }
 
-        // let num_states = next_id;
-        // let accepting_dfa: HashSet<usize> = subset_to_id
-        //     .iter()
-        //     .filter(|(set, _)| set.iter().any(|s| self.accepting.contains(s)))
-        //     .map(|(_, id)| *id)
-        //     .collect();
+        let mut edges: Vec<(usize, char, usize)> = Vec::new();
 
-        // let edges: Vec<(usize, char, usize)> =
-        //     trans_out.into_iter().map(|((q, a), p)| (q, a, p)).collect();
+        while let Some(sub) = queue.pop_front() {
+            let sid = subset_to_id[&sub];
+            for &a in &alphabet_vec {
+                let mut dest: BTreeSet<SimpleLabeledNFAState> = BTreeSet::new();
+                for &s in &sub {
+                    if let Some(tos) = self.transitions.get(s).and_then(|row| row.get(&a)) {
+                        dest.extend(tos.iter().copied());
+                    }
+                }
+                let tid = if let Some(&id) = subset_to_id.get(&dest) {
+                    id
+                } else {
+                    let id = next_id;
+                    next_id += 1;
+                    subset_to_id.insert(dest.clone(), id);
+                    queue.push_back(dest.clone());
+                    if let Some(l) = Self::combined_label_for_subset(&dest, &self.labels, &combine) {
+                        dfa_labels.insert(id, l);
+                    }
+                    id
+                };
+                edges.push((sid, a, tid));
+            }
+        }
 
-        // SimpleLabeledDFA::new_unchecked(
-        //     num_states,
-        //     0,
-        //     accepting_dfa,
-        //     self.alphabet.iter().copied(),
-        //     edges,
-        // )
+        SimpleLabeledDFA::new_labeled_unchecked(
+            next_id,
+            0,
+            dfa_labels,
+            self.alphabet.iter().copied(),
+            edges,
+        )
+    }
+
+    fn combined_label_for_subset<F: Fn(Label, Label) -> Label>(
+        subset: &BTreeSet<SimpleLabeledNFAState>,
+        labels: &HashMap<SimpleLabeledNFAState, Label>,
+        combine: &F,
+    ) -> Option<Label> {
+        let mut acc: Option<Label> = None;
+        for &s in subset {
+            if let Some(l) = labels.get(&s).cloned() {
+                acc = Some(match acc {
+                    None => l,
+                    Some(a) => combine(a, l),
+                });
+            }
+        }
+        acc
     }
 }
