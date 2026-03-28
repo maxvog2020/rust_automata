@@ -4,7 +4,7 @@ version = "0.1.5"
 edition = "2024"
 rust-version = "1.85.0"
 
-description = "Deterministic and nondeterministic finite-automata algorithms in Rust"
+description = "Deterministic and nondeterministic automata algorithms in Rust"
 license = "MIT OR Apache-2.0"
 
 readme = "README.md"
