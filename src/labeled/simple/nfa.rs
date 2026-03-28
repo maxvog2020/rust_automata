@@ -169,8 +169,37 @@ impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label> for
         self.to_simple_dfa(combine)
     }
     
-    fn union(&self, _other: &Self) -> Self {
-        todo!()
+    fn union(&self, other: &Self) -> Self {
+        let na = self.transitions.len();
+        let shift = na;
+
+        let mut transitions = self.transitions.clone();
+        for row in &other.transitions {
+            let mut new_row: HashMap<char, HashSet<SimpleLabeledNFAState>> = HashMap::new();
+            for (&a, tos) in row {
+                let nt: HashSet<_> = tos.iter().map(|&p| p + shift).collect();
+                new_row.insert(a, nt);
+            }
+            transitions.push(new_row);
+        }
+
+        let mut initial = self.initial.clone();
+        initial.extend(other.initial.iter().map(|&s| s + shift));
+
+        let mut labels = self.labels.clone();
+        for (&s, l) in &other.labels {
+            labels.insert(s + shift, l.clone());
+        }
+
+        let mut alphabet = self.alphabet.clone();
+        alphabet.extend(&other.alphabet);
+
+        Self {
+            initial,
+            labels,
+            alphabet,
+            transitions,
+        }
     }
 }
 
