@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::Hash;
 
 use crate::arbitrary::Automaton;
@@ -8,13 +8,10 @@ use crate::arbitrary::NonDeterministicAutomaton;
 use crate::finite::FiniteAutomaton;
 use crate::finite::NonDeterministicFiniteAutomaton;
 use crate::labeled::arbitrary::LabeledAutomaton;
-use crate::labeled::arbitrary::NonDeterministicLabeledAutomaton;
-use crate::labeled::finite::FiniteLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 use crate::labeled::simple::SimpleLabeledNFA;
-use crate::utility::{flat_vec_hashmap_hashset, hashmap_of_unit_to_hashset, hashset_of_unit_to_hashmap};
+use crate::utility::{hashmap_of_unit_to_hashset, hashset_of_unit_to_hashmap};
 
-use super::dfa::SimpleDFA;
 use super::SimpleBuildError;
 use super::state::SimpleNFAState;
 

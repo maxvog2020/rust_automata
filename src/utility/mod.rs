@@ -7,10 +7,12 @@ pub(crate) fn clone_reduce<T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Optio
     Some(iter.fold(item.clone(), f))
 }
 
+#[allow(dead_code)]
 pub(crate) fn flat_vec_hashmap<'a, 'b: 'a, K: Hash + Eq + Clone, V: Clone>(vec: &'b [HashMap<K, V>]) -> impl Iterator<Item = (usize, K, V)> + 'a {
     vec.iter().enumerate().flat_map(|(q, transition)| transition.iter().map(move |(a, p)| (q, a.clone(), p.clone())))
 }
 
+#[allow(dead_code)]
 pub(crate) fn flat_vec_hashmap_hashset<'a, 'b: 'a, K: Hash + Eq + Clone, V: Clone>(vec: &'b [HashMap<K, HashSet<V>>]) -> impl Iterator<Item = (usize, K, V)> + 'a {
     vec.iter().enumerate().flat_map(|(q, transition)| transition.iter().flat_map(move |(a, p)| p.iter().map(move |p| (q, a.clone(), p.clone()))))
 }

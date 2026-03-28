@@ -1,19 +1,13 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::hash::Hash;
 
 use crate::arbitrary::Automaton;
 use crate::arbitrary::DeterministicAutomaton;
 use crate::finite::DeterministicFiniteAutomaton;
 use crate::finite::FiniteAutomaton;
-use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
-use crate::labeled::arbitrary::LabeledAutomaton;
-use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
-use crate::labeled::finite::FiniteLabeledAutomaton;
 use crate::labeled::simple::SimpleLabeledDFA;
-use crate::utility::flat_vec_hashmap;
 
 use super::SimpleBuildError;
-use super::nfa::SimpleNFA;
 use super::state::SimpleDFAState;
 
 /// A small reference implementation of a deterministic finite automaton.
