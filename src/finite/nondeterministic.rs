@@ -2,26 +2,16 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::arbitrary::NonDeterministicAutomaton;
 use crate::finite::automaton::FiniteAutomaton;
-use crate::finite::deterministic::DeterministicFiniteAutomaton;
+use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
+use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
+use crate::utility::clone_reduce;
 
 /// Finite nondeterministic automata operations.
 ///
 /// This trait adds finite-alphabet combinators and classical closure
 /// operations for NFAs (union/intersection/concatenation/star, etc.),
 /// together with determinization.
-pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton {
-    /// Deterministic representation obtained by determinization.
-    type CorrespondingDFA: DeterministicFiniteAutomaton<
-            State = Self::State,
-            Input = Self::Input,
-            CorrespondingNFA = Self,
-        >;
-
-    /// Determinize this NFA into a DFA (subset construction).
-    fn to_dfa(&self) -> Self::CorrespondingDFA;
-
-    /// Language union: `L(self) ∪ L(other)`.
-    fn union(&self, other: &Self) -> Self;
+pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton + NonDeterministicFiniteLabeledAutomaton<()> {
     /// Language difference: `L(self) \ L(other)`.
     fn difference(&self, other: &Self) -> Self;
     /// Concatenation: `L(self) · L(other)`.
@@ -44,25 +34,14 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     /// Restrict to `co-reachable` states.
     fn co_accessible(&self) -> Self;
 
-    /// Determinize this NFA into a minimized DFA.
-    ///
-    /// The concrete implementation is free to choose an algorithm; the
-    /// default implementation uses Brzozowski's approach (via reverse +
-    /// determinization).
-    fn to_minimized_dfa(&self) -> Self::CorrespondingDFA {
-        self.reverse().to_dfa().to_nfa().reverse().to_dfa()
+    /// Determinize this NFA into a DFA (subset construction).
+    fn to_dfa(&self) -> Self::CorrespondingDFA {
+        self.to_dfa_by(|_, _| ())
     }
 
-    /// Language union across many NFAs.
-    ///
-    /// Computes `L(a0) ∪ L(a1) ∪ ...` for every automaton produced by `automata`.
-    ///
-    /// Returns `None` if the slice is empty.
-    fn union_all(automata: &[Self]) -> Option<Self>
-    where
-        Self: Clone,
-    {
-        clone_reduce(automata, |a, b| a.union(b))
+    /// Determinize this NFA into a minimized DFA.
+    fn to_minimized_dfa(&self) -> Self::CorrespondingDFA {
+        self.to_dfa().minimize()
     }
 
     /// Concatenation across many NFAs.
@@ -128,35 +107,6 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
         common
     }
 
-    /// All states reachable from the initial states.
-    ///
-    /// This helper explores the automaton by iterating successor transitions
-    /// over every symbol in `alphabet()`.
-    fn reachable_states_set(&self) -> HashSet<Self::State> {
-        let mut reachable = HashSet::new();
-        let mut queue = VecDeque::new();
-
-        for initial_state in self.initial_states() {
-            queue.push_back(initial_state);
-        }
-
-        while let Some(state) = queue.pop_front() {
-            if reachable.contains(&state) {
-                continue;
-            }
-
-            reachable.insert(state);
-
-            for input in self.alphabet() {
-                for successor in self.successors(state, &input) {
-                    queue.push_back(successor);
-                }
-            }
-        }
-
-        reachable
-    }
-
     /// Whether the recognized language is empty.
     fn is_empty_language(&self) -> bool {
         !self
@@ -176,8 +126,3 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
     }
 }
 
-fn clone_reduce<T: Clone>(arr: &[T], f: impl Fn(T, &T) -> T) -> Option<T> {
-    let mut iter = arr.iter();
-    let item = iter.next()?;
-    Some(iter.fold(item.clone(), f))
-}

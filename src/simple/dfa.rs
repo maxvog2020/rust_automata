@@ -4,6 +4,10 @@ use crate::arbitrary::Automaton;
 use crate::arbitrary::DeterministicAutomaton;
 use crate::finite::DeterministicFiniteAutomaton;
 use crate::finite::FiniteAutomaton;
+use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
+use crate::labeled::arbitrary::LabeledAutomaton;
+use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
+use crate::labeled::finite::FiniteLabeledAutomaton;
 
 use super::error::SimpleBuildError;
 use super::nfa::SimpleNFA;
@@ -145,7 +149,7 @@ impl SimpleDFA {
     }
 }
 
-impl Automaton for SimpleDFA {
+impl LabeledAutomaton<()> for SimpleDFA {
     type State = SimpleDFAState;
     type Input = char;
 
@@ -164,23 +168,35 @@ impl Automaton for SimpleDFA {
     fn is_initial_state(&self, state: Self::State) -> bool {
         state == self.initial
     }
+    
+    fn get_label(&self, state: Self::State) -> Option<()> {
+        if self.accepting.contains(&state) {
+            Some(())
+        } else {
+            None
+        }
+    }
+}
 
+impl Automaton for SimpleDFA {
     fn is_accepting_state(&self, state: Self::State) -> bool {
         self.accepting.contains(&state)
     }
 }
 
-impl FiniteAutomaton for SimpleDFA {
+impl FiniteLabeledAutomaton<()> for SimpleDFA {
     fn alphabet_set(&self) -> HashSet<Self::Input> {
         self.alphabet.clone()
     }
+}
 
+impl FiniteAutomaton for SimpleDFA {
     fn accepting_states_set(&self) -> HashSet<Self::State> {
         self.accepting.clone()
     }
 }
 
-impl DeterministicAutomaton for SimpleDFA {
+impl DeterministicLabeledAutomaton<()> for SimpleDFA {
     fn initial_state(&self) -> Self::State {
         self.initial
     }
@@ -190,10 +206,12 @@ impl DeterministicAutomaton for SimpleDFA {
     }
 }
 
-impl DeterministicFiniteAutomaton for SimpleDFA {
-    type CorrespondingNFA = SimpleNFA;
+impl DeterministicAutomaton for SimpleDFA {}
 
-    fn to_nfa(&self) -> SimpleNFA {
+impl DeterministicFiniteLabeledAutomaton<()> for SimpleDFA {
+    type CorrespondingNFA = SimpleNFA;
+    
+    fn to_nfa(&self) -> Self::CorrespondingNFA {
         let edges: Vec<(usize, char, usize)> = self
             .transitions
             .iter()
@@ -209,8 +227,15 @@ impl DeterministicFiniteAutomaton for SimpleDFA {
             edges,
         )
     }
-
+    
     fn complete(&self) -> Self {
         self.completed()
     }
+    
+    fn minimize(&self) -> Self {
+        // TODO: implement
+        self.clone()
+    }
 }
+
+impl DeterministicFiniteAutomaton for SimpleDFA {}

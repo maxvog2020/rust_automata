@@ -1,11 +1,15 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
 use crate::arbitrary::Automaton;
-use crate::arbitrary::DeterministicAutomaton;
+use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
+use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 use crate::arbitrary::NonDeterministicAutomaton;
-use crate::finite::DeterministicFiniteAutomaton;
 use crate::finite::FiniteAutomaton;
 use crate::finite::NonDeterministicFiniteAutomaton;
+use crate::labeled::arbitrary::LabeledAutomaton;
+use crate::labeled::arbitrary::NonDeterministicLabeledAutomaton;
+use crate::labeled::finite::FiniteLabeledAutomaton;
+use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 
 use super::dfa::SimpleDFA;
 use super::error::SimpleBuildError;
@@ -242,7 +246,7 @@ impl SimpleNFA {
     }
 }
 
-impl Automaton for SimpleNFA {
+impl LabeledAutomaton<()> for SimpleNFA {
     type State = SimpleNFAState;
     type Input = char;
 
@@ -261,32 +265,50 @@ impl Automaton for SimpleNFA {
     fn is_initial_state(&self, state: Self::State) -> bool {
         self.initial.contains(&state)
     }
+    
+    fn get_label(&self, state: Self::State) -> Option<()> {
+        if self.accepting.contains(&state) {
+            Some(())
+        } else {
+            None
+        }
+    }
+}
 
+impl Automaton for SimpleNFA {
     fn is_accepting_state(&self, state: Self::State) -> bool {
         self.accepting.contains(&state)
     }
 }
 
-impl FiniteAutomaton for SimpleNFA {
+impl FiniteLabeledAutomaton<()> for SimpleNFA {
     fn alphabet_set(&self) -> HashSet<Self::Input> {
         self.alphabet.clone()
     }
+}
 
+impl FiniteAutomaton for SimpleNFA {
     fn accepting_states_set(&self) -> HashSet<Self::State> {
         self.accepting.clone()
     }
 }
 
-impl NonDeterministicAutomaton for SimpleNFA {
-    fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
+impl NonDeterministicLabeledAutomaton<()> for SimpleNFA {
+    fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a
+    where
+        Self::State: 'a 
+    {
         self.initial.iter().copied()
     }
-
+    
     fn successors<'a>(
         &'a self,
         state: Self::State,
         input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a {
+    ) -> impl Iterator<Item = Self::State> + 'a
+    where
+        Self::State: 'a 
+    {
         self.transitions
             .get(state)
             .and_then(|row| row.get(input))
@@ -295,13 +317,15 @@ impl NonDeterministicAutomaton for SimpleNFA {
     }
 }
 
-impl NonDeterministicFiniteAutomaton for SimpleNFA {
+impl NonDeterministicAutomaton for SimpleNFA {}
+
+impl NonDeterministicFiniteLabeledAutomaton<()> for SimpleNFA {
     type CorrespondingDFA = SimpleDFA;
 
-    fn to_dfa(&self) -> SimpleDFA {
+    fn to_dfa_by(&self, _combine: impl Fn((), ()) -> ()) -> Self::CorrespondingDFA {
         self.to_simple_dfa()
     }
-
+    
     fn union(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let nb = other.transitions.len();
@@ -322,6 +346,12 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
             alphabet: ab,
             transitions: rows,
         }
+    }
+}
+
+impl NonDeterministicFiniteAutomaton for SimpleNFA {
+    fn to_dfa(&self) -> SimpleDFA {
+        self.to_simple_dfa()
     }
 
     fn difference(&self, other: &Self) -> Self {

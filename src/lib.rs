@@ -34,8 +34,9 @@
 //!   `minimize`.
 //! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
 //!
+pub(crate) mod utility;
+
 pub mod arbitrary;
 pub mod finite;
 pub mod labeled;
 pub mod simple;
-pub mod wrapper;

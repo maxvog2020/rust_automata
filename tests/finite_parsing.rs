@@ -2,6 +2,7 @@ use automata_core::arbitrary::Automaton;
 use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::{ParseResult, parse_by_longest_match};
 use automata_core::simple::{SimpleDFA, SimpleNFA};
+use automata_core::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 
 ////////////////////////////////////////////////////////////
 // Helpers
