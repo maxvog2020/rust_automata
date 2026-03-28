@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+use std::hash::Hash;
 
 use crate::arbitrary::Automaton;
 use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
@@ -10,6 +11,8 @@ use crate::labeled::arbitrary::LabeledAutomaton;
 use crate::labeled::arbitrary::NonDeterministicLabeledAutomaton;
 use crate::labeled::finite::FiniteLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
+use crate::labeled::simple::SimpleLabeledNFA;
+use crate::utility::{flat_vec_hashmap_hashset, hashmap_of_unit_to_hashset, hashset_of_unit_to_hashmap};
 
 use super::dfa::SimpleDFA;
 use super::SimpleBuildError;
@@ -20,13 +23,7 @@ use super::state::SimpleNFAState;
 /// `SimpleNFA` uses dense states `[0..state_count)` and stores transitions
 /// as sets:
 /// `State × Input -> HashSet<State>`.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SimpleNFA {
-    initial: HashSet<SimpleNFAState>,
-    accepting: HashSet<SimpleNFAState>,
-    alphabet: HashSet<char>,
-    transitions: Vec<HashMap<char, HashSet<SimpleNFAState>>>,
-}
+pub type SimpleNFA = SimpleLabeledNFA<()>;
 
 impl SimpleNFA {
     /// Construct a `SimpleNFA` without validating invariants.
@@ -39,20 +36,8 @@ impl SimpleNFA {
         alphabet: impl IntoIterator<Item = char>,
         transitions: impl IntoIterator<Item = (SimpleNFAState, char, SimpleNFAState)>,
     ) -> Self {
-        let alphabet: HashSet<char> = alphabet.into_iter().collect();
-        let initial: HashSet<_> = initial.into_iter().collect();
-        let accepting: HashSet<_> = accepting.into_iter().collect();
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
-            vec![HashMap::new(); state_count];
-        for (q, a, p) in transitions {
-            rows[q].entry(a).or_default().insert(p);
-        }
-        Self {
-            initial,
-            accepting,
-            alphabet,
-            transitions: rows,
-        }
+        let labels = accepting.into_iter().map(|s| (s, ()));
+        SimpleLabeledNFA::new_labeled_unchecked(state_count, initial, labels, alphabet, transitions)
     }
 
     /// Construct a `SimpleNFA` with validation.
@@ -65,40 +50,8 @@ impl SimpleNFA {
         alphabet: impl IntoIterator<Item = char>,
         transitions: impl IntoIterator<Item = (SimpleNFAState, char, SimpleNFAState)>,
     ) -> Result<Self, SimpleBuildError> {
-        let alphabet: HashSet<char> = alphabet.into_iter().collect();
-        let initial: HashSet<_> = initial.into_iter().collect();
-        let accepting: HashSet<_> = accepting.into_iter().collect();
-        for &s in initial.union(&accepting) {
-            if s >= state_count {
-                return Err(SimpleBuildError::StateOutOfRange {
-                    state: s,
-                    state_count,
-                });
-            }
-        }
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> =
-            vec![HashMap::new(); state_count];
-        for (q, a, p) in transitions {
-            if q >= state_count {
-                return Err(SimpleBuildError::TransitionFromOutOfRange {
-                    from: q,
-                    state_count,
-                });
-            }
-            if p >= state_count {
-                return Err(SimpleBuildError::TransitionToOutOfRange { to: p, state_count });
-            }
-            if !alphabet.contains(&a) {
-                return Err(SimpleBuildError::SymbolNotInAlphabet(a));
-            }
-            rows[q].entry(a).or_default().insert(p);
-        }
-        Ok(Self {
-            initial,
-            accepting,
-            alphabet,
-            transitions: rows,
-        })
+        let labels = accepting.into_iter().map(|s| (s, ()));
+        SimpleLabeledNFA::try_new_labeled(state_count, initial, labels, alphabet, transitions)
     }
 
     /// Build a **two-state** `SimpleNFA`: initial state `0`, unique accepting
@@ -125,213 +78,27 @@ impl SimpleNFA {
         Self::try_new(2, [0], [1], alphabet, transitions)
     }
 
-    fn reversed(&self) -> SimpleNFA {
-        let n = self.transitions.len();
-        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); n];
-        for q in 0..n {
-            for (a, tos) in &self.transitions[q] {
-                for &p in tos {
-                    rows[p].entry(*a).or_default().insert(q);
-                }
-            }
-        }
-        SimpleNFA {
-            initial: self.accepting.clone(),
-            accepting: self.initial.clone(),
-            alphabet: self.alphabet.clone(),
-            transitions: rows,
-        }
-    }
-
-    fn to_simple_dfa(&self) -> SimpleDFA {
-        let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
-        alphabet_vec.sort_unstable();
-        let start: BTreeSet<SimpleNFAState> = self.initial.iter().copied().collect();
-        let mut subset_to_id: HashMap<BTreeSet<SimpleNFAState>, usize> = HashMap::new();
-        let mut queue: VecDeque<BTreeSet<SimpleNFAState>> = VecDeque::new();
-        subset_to_id.insert(start.clone(), 0);
-        let mut next_id = 1usize;
-        queue.push_back(start);
-
-        let mut trans_out: HashMap<(usize, char), usize> = HashMap::new();
-
-        while let Some(sub) = queue.pop_front() {
-            let sid = subset_to_id[&sub];
-            for &a in &alphabet_vec {
-                let mut dest: BTreeSet<SimpleNFAState> = BTreeSet::new();
-                for &s in &sub {
-                    if let Some(tos) = self.transitions[s].get(&a) {
-                        dest.extend(tos.iter().copied());
-                    }
-                }
-                let tid = if let Some(&id) = subset_to_id.get(&dest) {
-                    id
-                } else {
-                    let id = next_id;
-                    next_id += 1;
-                    subset_to_id.insert(dest.clone(), id);
-                    queue.push_back(dest);
-                    id
-                };
-                trans_out.insert((sid, a), tid);
-            }
-        }
-
-        let num_states = next_id;
-        let accepting_dfa: HashSet<usize> = subset_to_id
-            .iter()
-            .filter(|(set, _)| set.iter().any(|s| self.accepting.contains(s)))
-            .map(|(_, id)| *id)
-            .collect();
-
-        let edges: Vec<(usize, char, usize)> =
-            trans_out.into_iter().map(|((q, a), p)| (q, a, p)).collect();
-
-        SimpleDFA::new_unchecked(
-            num_states,
-            0,
-            accepting_dfa,
-            self.alphabet.iter().copied(),
-            edges,
-        )
-    }
-
-    fn co_reachable(&self) -> HashSet<SimpleNFAState> {
-        let mut rev: HashMap<SimpleNFAState, HashSet<SimpleNFAState>> = HashMap::new();
-        for q in 0..self.transitions.len() {
-            for tos in self.transitions[q].values() {
-                for &p in tos {
-                    rev.entry(p).or_default().insert(q);
-                }
-            }
-        }
-        let mut seen = HashSet::new();
-        let mut q = VecDeque::new();
-        for &s in &self.accepting {
-            q.push_back(s);
-        }
-        while let Some(s) = q.pop_front() {
-            if !seen.insert(s) {
-                continue;
-            }
-            if let Some(preds) = rev.get(&s) {
-                for &p in preds {
-                    q.push_back(p);
-                }
-            }
-        }
-        seen
-    }
-}
-
-impl LabeledAutomaton<()> for SimpleNFA {
-    type State = SimpleNFAState;
-    type Input = char;
-
-    fn states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a {
-        0..self.transitions.len()
-    }
-
-    fn alphabet<'a>(&'a self) -> impl Iterator<Item = Self::Input> + 'a {
-        self.alphabet.iter().copied()
-    }
-
-    fn is_valid_state(&self, state: Self::State) -> bool {
-        state < self.transitions.len()
-    }
-
-    fn is_initial_state(&self, state: Self::State) -> bool {
-        self.initial.contains(&state)
-    }
-    
-    fn get_label(&self, state: Self::State) -> Option<()> {
-        if self.accepting.contains(&state) {
-            Some(())
-        } else {
-            None
-        }
+    // TODO: docs
+    pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(&self, label: Label) -> SimpleLabeledNFA<Label> {
+        self.map_labels(|_| label.clone())
     }
 }
 
 impl Automaton for SimpleNFA {
     fn is_accepting_state(&self, state: Self::State) -> bool {
-        self.accepting.contains(&state)
-    }
-}
-
-impl FiniteLabeledAutomaton<()> for SimpleNFA {
-    fn alphabet_set(&self) -> HashSet<Self::Input> {
-        self.alphabet.clone()
+        self.labels.contains_key(&state)
     }
 }
 
 impl FiniteAutomaton for SimpleNFA {
     fn accepting_states_set(&self) -> HashSet<Self::State> {
-        self.accepting.clone()
-    }
-}
-
-impl NonDeterministicLabeledAutomaton<()> for SimpleNFA {
-    fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a
-    where
-        Self::State: 'a 
-    {
-        self.initial.iter().copied()
-    }
-    
-    fn successors<'a>(
-        &'a self,
-        state: Self::State,
-        input: &Self::Input,
-    ) -> impl Iterator<Item = Self::State> + 'a
-    where
-        Self::State: 'a 
-    {
-        self.transitions
-            .get(state)
-            .and_then(|row| row.get(input))
-            .into_iter()
-            .flat_map(|s| s.iter().copied())
+        self.labels.keys().copied().collect()
     }
 }
 
 impl NonDeterministicAutomaton for SimpleNFA {}
 
-impl NonDeterministicFiniteLabeledAutomaton<()> for SimpleNFA {
-    type CorrespondingDFA = SimpleDFA;
-
-    fn to_dfa_by(&self, _combine: impl Fn((), ()) -> ()) -> Self::CorrespondingDFA {
-        self.to_simple_dfa()
-    }
-    
-    fn union(&self, other: &Self) -> Self {
-        let na = self.transitions.len();
-        let nb = other.transitions.len();
-        let ab: HashSet<char> = self.alphabet.union(&other.alphabet).copied().collect();
-        let mut rows = self.transitions.clone();
-        rows.resize(na + nb, HashMap::new());
-        for q in 0..nb {
-            for (a, tos) in &other.transitions[q] {
-                let nt: HashSet<_> = tos.iter().map(|&p| p + na).collect();
-                rows[na + q].entry(*a).or_default().extend(nt);
-            }
-        }
-        let oi: HashSet<_> = other.initial.iter().map(|&s| s + na).collect();
-        let oa: HashSet<_> = other.accepting.iter().map(|&s| s + na).collect();
-        SimpleNFA {
-            initial: self.initial.union(&oi).copied().collect(),
-            accepting: self.accepting.union(&oa).copied().collect(),
-            alphabet: ab,
-            transitions: rows,
-        }
-    }
-}
-
 impl NonDeterministicFiniteAutomaton for SimpleNFA {
-    fn to_dfa(&self) -> SimpleDFA {
-        self.to_simple_dfa()
-    }
-
     fn difference(&self, other: &Self) -> Self {
         self.difference_inner(other)
     }
@@ -348,7 +115,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
                 rows[na + q].entry(*a).or_default().extend(nt);
             }
         }
-        for &fa in &self.accepting {
+        for &fa in self.labels.keys() {
             for &qb in &other.initial {
                 if qb >= other.transitions.len() {
                     continue;
@@ -360,14 +127,14 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
             }
         }
         // if `other` accepts the empty word
-        let other_accepts_empty = other.initial.iter().any(|s| other.accepting.contains(s));
-        let mut acc: HashSet<_> = other.accepting.iter().map(|&s| s + na).collect();
+        let other_accepts_empty = other.initial.iter().any(|s| other.labels.contains_key(s));
+        let mut acc: HashSet<_> = other.labels.keys().map(|&s| s + na).collect();
         if other_accepts_empty {
-            acc.extend(self.accepting.iter().copied());
+            acc.extend(hashmap_of_unit_to_hashset(self.labels.clone()));
         }
         SimpleNFA {
             initial: self.initial.clone(),
-            accepting: acc,
+            labels: hashset_of_unit_to_hashmap(acc),
             alphabet: ab,
             transitions: rows,
         }
@@ -409,7 +176,7 @@ impl NonDeterministicFiniteAutomaton for SimpleNFA {
 }
 
 impl SimpleNFA {
-    pub fn star_nfa(&self) -> SimpleNFA {
+    fn star_nfa(&self) -> SimpleNFA {
         let n = self.transitions.len();
         let new_n = n + 1;
         let shift = |q: usize| q + 1;
@@ -431,7 +198,7 @@ impl SimpleNFA {
             }
         }
 
-        for &f in &self.accepting {
+        for &f in self.labels.keys() {
             let fq = shift(f);
             for &i in &self.initial {
                 for (a, tos) in &self.transitions[i] {
@@ -442,15 +209,64 @@ impl SimpleNFA {
             }
         }
 
-        let mut accepting: HashSet<_> = self.accepting.iter().map(|&f| shift(f)).collect();
+        let mut accepting: HashSet<_> = self.labels.keys().map(|&f| shift(f)).collect();
         accepting.insert(0);
 
         SimpleNFA {
             initial: HashSet::from([0]),
-            accepting,
+            labels: hashset_of_unit_to_hashmap(accepting),
             alphabet: self.alphabet.clone(),
             transitions: rows,
         }
+    }
+
+    fn reversed(&self) -> SimpleNFA {
+        let n = self.transitions.len();
+        let mut rows: Vec<HashMap<char, HashSet<SimpleNFAState>>> = vec![HashMap::new(); n];
+        for q in 0..n {
+            for (a, tos) in &self.transitions[q] {
+                for &p in tos {
+                    rows[p].entry(*a).or_default().insert(q);
+                }
+            }
+        }
+
+        let new_initial = self.labels.keys().copied().collect();
+        let new_labels = self.initial.iter().map(|&s| (s, ())).collect();
+
+        SimpleNFA {
+            initial: new_initial,
+            labels: new_labels,
+            alphabet: self.alphabet.clone(),
+            transitions: rows,
+        }
+    }
+
+    fn co_reachable(&self) -> HashSet<SimpleNFAState> {
+        let mut rev: HashMap<SimpleNFAState, HashSet<SimpleNFAState>> = HashMap::new();
+        for q in 0..self.transitions.len() {
+            for tos in self.transitions[q].values() {
+                for &p in tos {
+                    rev.entry(p).or_default().insert(q);
+                }
+            }
+        }
+        let mut seen = HashSet::new();
+        let mut q = VecDeque::new();
+        for &s in self.labels.keys() {
+            q.push_back(s);
+        }
+        while let Some(s) = q.pop_front() {
+            if !seen.insert(s) {
+                continue;
+            }
+            if let Some(preds) = rev.get(&s) {
+                for &p in preds {
+                    q.push_back(p);
+                }
+            }
+        }
+        seen
     }
 
     fn complement_inner(&self) -> SimpleNFA {
@@ -503,8 +319,8 @@ impl SimpleNFA {
             .filter_map(|&s| remap.get(&s).copied())
             .collect();
         let accepting: HashSet<_> = self
-            .accepting
-            .iter()
+            .labels
+            .keys()
             .filter_map(|&s| remap.get(&s).copied())
             .collect();
         let ab = self.alphabet.clone();
@@ -573,7 +389,7 @@ impl SimpleNFA {
 
         let accepting: HashSet<_> = pair_id
             .iter()
-            .filter(|(k, _)| self.accepting.contains(&k.0) && other.accepting.contains(&k.1))
+            .filter(|(k, _)| self.labels.contains_key(&k.0) && other.labels.contains_key(&k.1))
             .map(|(_, id)| *id)
             .collect();
 

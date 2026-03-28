@@ -17,17 +17,17 @@ use super::state::SimpleLabeledNFAState;
 /// `State × Input -> HashSet<State>`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleLabeledNFA<Label: Hash + Eq + Clone> {
-    initial: HashSet<SimpleLabeledNFAState>,
-    labels: HashMap<SimpleLabeledNFAState, Label>,
-    alphabet: HashSet<char>,
-    transitions: Vec<HashMap<char, HashSet<SimpleLabeledNFAState>>>,
+    pub(crate) initial: HashSet<SimpleLabeledNFAState>,
+    pub(crate) labels: HashMap<SimpleLabeledNFAState, Label>,
+    pub(crate) alphabet: HashSet<char>,
+    pub(crate) transitions: Vec<HashMap<char, HashSet<SimpleLabeledNFAState>>>,
 }
 
 impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
     /// Construct a `SimpleNFA` without validating invariants.
     ///
     /// This constructor is intended for internal use and tests.
-    pub fn new_unchecked(
+    pub fn new_labeled_unchecked(
         state_count: usize,
         initial: impl IntoIterator<Item = SimpleLabeledNFAState>,
         labels: impl IntoIterator<Item = (SimpleLabeledNFAState, Label)>,
@@ -53,7 +53,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
     /// Construct a `SimpleNFA` with validation.
     ///
     /// See [`SimpleBuildError`] for possible failures.
-    pub fn try_new(
+    pub fn try_new_labeled(
         state_count: usize,
         initial: impl IntoIterator<Item = SimpleLabeledNFAState>,
         labels: impl IntoIterator<Item = (SimpleLabeledNFAState, Label)>,
@@ -96,58 +96,14 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
         })
     }
 
-    fn to_simple_dfa(&self) -> SimpleLabeledDFA<Label> {
-        todo!()
-        // let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
-        // alphabet_vec.sort_unstable();
-        // let start: BTreeSet<SimpleLabeledNFAState> = self.initial.iter().copied().collect();
-        // let mut subset_to_id: HashMap<BTreeSet<SimpleLabeledNFAState>, usize> = HashMap::new();
-        // let mut queue: VecDeque<BTreeSet<SimpleLabeledNFAState>> = VecDeque::new();
-        // subset_to_id.insert(start.clone(), 0);
-        // let mut next_id = 1usize;
-        // queue.push_back(start);
-
-        // let mut trans_out: HashMap<(usize, char), usize> = HashMap::new();
-
-        // while let Some(sub) = queue.pop_front() {
-        //     let sid = subset_to_id[&sub];
-        //     for &a in &alphabet_vec {
-        //         let mut dest: BTreeSet<SimpleLabeledNFAState> = BTreeSet::new();
-        //         for &s in &sub {
-        //             if let Some(tos) = self.transitions[s].get(&a) {
-        //                 dest.extend(tos.iter().copied());
-        //             }
-        //         }
-        //         let tid = if let Some(&id) = subset_to_id.get(&dest) {
-        //             id
-        //         } else {
-        //             let id = next_id;
-        //             next_id += 1;
-        //             subset_to_id.insert(dest.clone(), id);
-        //             queue.push_back(dest);
-        //             id
-        //         };
-        //         trans_out.insert((sid, a), tid);
-        //     }
-        // }
-
-        // let num_states = next_id;
-        // let accepting_dfa: HashSet<usize> = subset_to_id
-        //     .iter()
-        //     .filter(|(set, _)| set.iter().any(|s| self.accepting.contains(s)))
-        //     .map(|(_, id)| *id)
-        //     .collect();
-
-        // let edges: Vec<(usize, char, usize)> =
-        //     trans_out.into_iter().map(|((q, a), p)| (q, a, p)).collect();
-
-        // SimpleLabeledDFA::new_unchecked(
-        //     num_states,
-        //     0,
-        //     accepting_dfa,
-        //     self.alphabet.iter().copied(),
-        //     edges,
-        // )
+    // TODO: docs
+    pub fn map_labels<NewLabel: Hash + Eq + Clone>(&self, f: impl Fn(Label) -> NewLabel) -> SimpleLabeledNFA<NewLabel> {
+        SimpleLabeledNFA {
+            initial: self.initial.clone(),
+            labels: self.labels.iter().map(|(&k, v)| (k, f(v.clone()))).collect(),
+            alphabet: self.alphabet.clone(),
+            transitions: self.transitions.clone(),
+        }
     }
 }
 
@@ -215,5 +171,61 @@ impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label> for
     
     fn union(&self, _other: &Self) -> Self {
         todo!()
+    }
+}
+
+impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
+    fn to_simple_dfa(&self) -> SimpleLabeledDFA<Label> {
+        todo!()
+        // let mut alphabet_vec: Vec<char> = self.alphabet.iter().copied().collect();
+        // alphabet_vec.sort_unstable();
+        // let start: BTreeSet<SimpleLabeledNFAState> = self.initial.iter().copied().collect();
+        // let mut subset_to_id: HashMap<BTreeSet<SimpleLabeledNFAState>, usize> = HashMap::new();
+        // let mut queue: VecDeque<BTreeSet<SimpleLabeledNFAState>> = VecDeque::new();
+        // subset_to_id.insert(start.clone(), 0);
+        // let mut next_id = 1usize;
+        // queue.push_back(start);
+
+        // let mut trans_out: HashMap<(usize, char), usize> = HashMap::new();
+
+        // while let Some(sub) = queue.pop_front() {
+        //     let sid = subset_to_id[&sub];
+        //     for &a in &alphabet_vec {
+        //         let mut dest: BTreeSet<SimpleLabeledNFAState> = BTreeSet::new();
+        //         for &s in &sub {
+        //             if let Some(tos) = self.transitions[s].get(&a) {
+        //                 dest.extend(tos.iter().copied());
+        //             }
+        //         }
+        //         let tid = if let Some(&id) = subset_to_id.get(&dest) {
+        //             id
+        //         } else {
+        //             let id = next_id;
+        //             next_id += 1;
+        //             subset_to_id.insert(dest.clone(), id);
+        //             queue.push_back(dest);
+        //             id
+        //         };
+        //         trans_out.insert((sid, a), tid);
+        //     }
+        // }
+
+        // let num_states = next_id;
+        // let accepting_dfa: HashSet<usize> = subset_to_id
+        //     .iter()
+        //     .filter(|(set, _)| set.iter().any(|s| self.accepting.contains(s)))
+        //     .map(|(_, id)| *id)
+        //     .collect();
+
+        // let edges: Vec<(usize, char, usize)> =
+        //     trans_out.into_iter().map(|((q, a), p)| (q, a, p)).collect();
+
+        // SimpleLabeledDFA::new_unchecked(
+        //     num_states,
+        //     0,
+        //     accepting_dfa,
+        //     self.alphabet.iter().copied(),
+        //     edges,
+        // )
     }
 }

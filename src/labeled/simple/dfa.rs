@@ -16,10 +16,10 @@ use super::state::SimpleLabeledDFAState;
 /// stored as `State × Input -> Option<State>`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimpleLabeledDFA<Label: Hash + Eq + Clone> {
-    initial: SimpleLabeledDFAState,
-    labels: HashMap<SimpleLabeledDFAState, Label>,
-    alphabet: HashSet<char>,
-    transitions: Vec<HashMap<char, SimpleLabeledDFAState>>,
+    pub(crate) initial: SimpleLabeledDFAState,
+    pub(crate) labels: HashMap<SimpleLabeledDFAState, Label>,
+    pub(crate) alphabet: HashSet<char>,
+    pub(crate) transitions: Vec<HashMap<char, SimpleLabeledDFAState>>,
 }
 
 impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
@@ -31,7 +31,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
     /// - all transition endpoints are within range
     /// - transition symbols belong to `alphabet`
     /// - at most one transition per `(state, symbol)`
-    pub fn new_unchecked(
+    pub fn new_labeled_unchecked(
         state_count: usize,
         initial: SimpleLabeledDFAState,
         labels: impl IntoIterator<Item = (SimpleLabeledDFAState, Label)>,
@@ -55,7 +55,7 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
     /// Construct a `SimpleDFA` with validation.
     ///
     /// See [`SimpleBuildError`] for possible failures.
-    pub fn try_new(
+    pub fn try_new_labeled(
         state_count: usize,
         initial: SimpleLabeledDFAState,
         labels: impl IntoIterator<Item = (SimpleLabeledDFAState, Label)>,
@@ -119,6 +119,16 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
                     .collect::<Vec<Option<SimpleLabeledDFAState>>>()
             })
             .collect()
+    }
+
+    // TODO: docs
+    pub fn map_labels<NewLabel: Hash + Eq + Clone>(&self, f: impl Fn(Label) -> NewLabel) -> SimpleLabeledDFA<NewLabel> {
+        SimpleLabeledDFA {
+            initial: self.initial,
+            labels: self.labels.iter().map(|(&k, v)| (k, f(v.clone()))).collect(),
+            alphabet: self.alphabet.clone(),
+            transitions: self.transitions.clone(),
+        }
     }
 
     fn completed(&self) -> Self {
@@ -198,7 +208,7 @@ impl<Label: Hash + Eq + Clone> DeterministicFiniteLabeledAutomaton<Label> for Si
             .flat_map(|(q, transition)| transition.iter().map(move |(&a, &p)| (q, a, p)))
             .collect();
 
-        SimpleLabeledNFA::new_unchecked(
+        SimpleLabeledNFA::new_labeled_unchecked(
             self.transitions.len(),
             [self.initial],
             self.labels.iter().map(|(s, l)| (*s, l.clone())),
