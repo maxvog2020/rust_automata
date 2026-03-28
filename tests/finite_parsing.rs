@@ -1,6 +1,6 @@
 use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::{parse_by_longest_match, ParseResult};
-use automata_core::general::Automaton;
+use automata_core::arbitrary::Automaton;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
 
 ////////////////////////////////////////////////////////////

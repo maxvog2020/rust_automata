@@ -2,7 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::deterministic::DeterministicFiniteAutomaton;
-use crate::general::NonDeterministicAutomaton;
+use crate::arbitrary::NonDeterministicAutomaton;
 
 /// Finite nondeterministic automata operations.
 ///

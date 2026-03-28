@@ -4,7 +4,7 @@ mod common;
 use std::collections::HashSet;
 
 use automata_core::{finite::NonDeterministicFiniteAutomaton, simple::SimpleBuildError};
-use automata_core::general::{Automaton, DeterministicAutomaton, NonDeterministicAutomaton};
+use automata_core::arbitrary::{Automaton, DeterministicAutomaton, NonDeterministicAutomaton};
 use automata_core::simple::SimpleNFA;
 
 use common::{accepts_dfa, accepts_nfa, word_a, word_repeat};

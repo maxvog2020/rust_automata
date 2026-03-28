@@ -1,7 +1,7 @@
 use std::iter::repeat_n;
 
 use automata_core::finite::NonDeterministicFiniteAutomaton;
-use automata_core::general::DeterministicAutomaton;
+use automata_core::arbitrary::DeterministicAutomaton;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
 
 pub fn word_repeat<I: Clone>(sym: I, len: usize) -> Vec<I> {

@@ -1,4 +1,4 @@
-use crate::general::automaton::Automaton;
+use crate::arbitrary::automaton::Automaton;
 
 /// Deterministic automaton semantics.
 ///

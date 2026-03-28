@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::general::Automaton;
+use crate::arbitrary::Automaton;
 
 /// Finite automata are automata whose state set and input alphabet can be
 /// enumerated.

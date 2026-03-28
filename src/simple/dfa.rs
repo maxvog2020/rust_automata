@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 
 use crate::finite::FiniteAutomaton;
 use crate::finite::DeterministicFiniteAutomaton;
-use crate::general::Automaton;
-use crate::general::DeterministicAutomaton;
+use crate::arbitrary::Automaton;
+use crate::arbitrary::DeterministicAutomaton;
 
 use super::error::SimpleBuildError;
 use super::nfa::SimpleNFA;

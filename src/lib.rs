@@ -15,7 +15,7 @@
 //!
 //! ```rust
 //! use automata_core::simple::SimpleDFA;
-//! use automata_core::general::DeterministicAutomaton;
+//! use automata_core::arbitrary::DeterministicAutomaton;
 //! use automata_core::finite::DeterministicFiniteAutomaton;
 //!
 //! let alphabet = ['a'];
@@ -35,5 +35,5 @@
 //! - [`simple`]: dense reference automata (`SimpleDFA`, `SimpleNFA`).
 //!
 pub mod finite;
-pub mod general;
+pub mod arbitrary;
 pub mod simple;

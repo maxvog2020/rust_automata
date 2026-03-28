@@ -1,5 +1,5 @@
-use crate::general::automaton::Automaton;
-use crate::general::deterministic::DeterministicAutomaton;
+use crate::arbitrary::automaton::Automaton;
+use crate::arbitrary::deterministic::DeterministicAutomaton;
 
 /// Nondeterministic automaton semantics.
 ///

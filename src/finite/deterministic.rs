@@ -1,6 +1,6 @@
 use crate::finite::automaton::FiniteAutomaton;
 use crate::finite::nondeterministic::NonDeterministicFiniteAutomaton;
-use crate::general::DeterministicAutomaton;
+use crate::arbitrary::DeterministicAutomaton;
 
 /// Deterministic finite automata (DFA) operations over finite state sets.
 ///

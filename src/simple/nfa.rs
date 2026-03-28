@@ -3,9 +3,9 @@ use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use crate::finite::FiniteAutomaton;
 use crate::finite::DeterministicFiniteAutomaton;
 use crate::finite::NonDeterministicFiniteAutomaton;
-use crate::general::Automaton;
-use crate::general::DeterministicAutomaton;
-use crate::general::NonDeterministicAutomaton;
+use crate::arbitrary::Automaton;
+use crate::arbitrary::DeterministicAutomaton;
+use crate::arbitrary::NonDeterministicAutomaton;
 
 use super::dfa::SimpleDFA;
 use super::error::SimpleBuildError;
