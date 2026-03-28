@@ -122,10 +122,17 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledDFA<Label> {
     }
 
     // TODO: docs
-    pub fn map_labels<NewLabel: Hash + Eq + Clone>(&self, f: impl Fn(Label) -> NewLabel) -> SimpleLabeledDFA<NewLabel> {
+    pub fn map_labels<NewLabel: Hash + Eq + Clone>(
+        &self,
+        f: impl Fn(Label) -> NewLabel,
+    ) -> SimpleLabeledDFA<NewLabel> {
         SimpleLabeledDFA {
             initial: self.initial,
-            labels: self.labels.iter().map(|(&k, v)| (k, f(v.clone()))).collect(),
+            labels: self
+                .labels
+                .iter()
+                .map(|(&k, v)| (k, f(v.clone())))
+                .collect(),
             alphabet: self.alphabet.clone(),
             transitions: self.transitions.clone(),
         }
@@ -340,7 +347,7 @@ impl<Label: Hash + Eq + Clone> LabeledAutomaton<Label> for SimpleLabeledDFA<Labe
     fn is_initial_state(&self, state: Self::State) -> bool {
         state == self.initial
     }
-    
+
     fn get_label(&self, state: Self::State) -> Option<Label> {
         self.labels.get(&state).cloned()
     }
@@ -362,9 +369,11 @@ impl<Label: Hash + Eq + Clone> DeterministicLabeledAutomaton<Label> for SimpleLa
     }
 }
 
-impl<Label: Hash + Eq + Clone> DeterministicFiniteLabeledAutomaton<Label> for SimpleLabeledDFA<Label> {
+impl<Label: Hash + Eq + Clone> DeterministicFiniteLabeledAutomaton<Label>
+    for SimpleLabeledDFA<Label>
+{
     type CorrespondingNFA = SimpleLabeledNFA<Label>;
-    
+
     fn to_nfa(&self) -> Self::CorrespondingNFA {
         let edges: Vec<(usize, char, usize)> = self
             .transitions
@@ -381,13 +390,12 @@ impl<Label: Hash + Eq + Clone> DeterministicFiniteLabeledAutomaton<Label> for Si
             edges,
         )
     }
-    
+
     fn complete(&self) -> Self {
         self.completed()
     }
-    
+
     fn minimize(&self) -> Self {
         self.hopcroft_minimize()
     }
 }
-

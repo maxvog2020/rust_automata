@@ -11,7 +11,9 @@ use crate::utility::clone_reduce;
 /// This trait adds finite-alphabet combinators and classical closure
 /// operations for NFAs (union/intersection/concatenation/star, etc.),
 /// together with determinization.
-pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAutomaton + NonDeterministicFiniteLabeledAutomaton<()> {
+pub trait NonDeterministicFiniteAutomaton:
+    NonDeterministicAutomaton + FiniteAutomaton + NonDeterministicFiniteLabeledAutomaton<()>
+{
     /// Language difference: `L(self) \ L(other)`.
     fn difference(&self, other: &Self) -> Self;
     /// Concatenation: `L(self) · L(other)`.
@@ -125,4 +127,3 @@ pub trait NonDeterministicFiniteAutomaton: NonDeterministicAutomaton + FiniteAut
         self.is_subset_of(other) && other.is_subset_of(self)
     }
 }
-

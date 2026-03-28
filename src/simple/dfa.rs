@@ -51,7 +51,10 @@ impl SimpleDFA {
     }
 
     // TODO: docs
-    pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(&self, label: Label) -> SimpleLabeledDFA<Label> {
+    pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(
+        &self,
+        label: Label,
+    ) -> SimpleLabeledDFA<Label> {
         self.map_labels(|_| label.clone())
     }
 }

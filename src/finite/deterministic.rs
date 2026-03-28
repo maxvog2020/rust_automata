@@ -9,4 +9,7 @@ use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 /// Implementations provide determinism-specific operations such as word
 /// acceptance (via [`DeterministicAutomaton::accepts`]), completion, and
 /// minimization.
-pub trait DeterministicFiniteAutomaton: DeterministicAutomaton + FiniteAutomaton + DeterministicFiniteLabeledAutomaton<()> {}
+pub trait DeterministicFiniteAutomaton:
+    DeterministicAutomaton + FiniteAutomaton + DeterministicFiniteLabeledAutomaton<()>
+{
+}

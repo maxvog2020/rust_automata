@@ -7,7 +7,9 @@ use crate::labeled::finite::deterministic::DeterministicFiniteLabeledAutomaton;
 use crate::utility::clone_reduce;
 
 // TODO: docs
-pub trait NonDeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>: NonDeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label> {
+pub trait NonDeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
+    NonDeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label>
+{
     /// Deterministic representation obtained by determinization.
     type CorrespondingDFA: DeterministicFiniteLabeledAutomaton<
             Label,
@@ -63,4 +65,3 @@ pub trait NonDeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>: NonD
         reachable
     }
 }
-

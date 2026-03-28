@@ -10,7 +10,7 @@ mod dfa;
 mod nfa;
 mod state;
 
+pub use crate::labeled::simple::SimpleBuildError;
 pub use dfa::SimpleDFA;
 pub use nfa::SimpleNFA;
 pub use state::{SimpleDFAState, SimpleNFAState};
-pub use crate::labeled::simple::SimpleBuildError;

@@ -37,7 +37,10 @@ pub struct ParseResult<State> {
     pub size: usize,
 }
 
-fn longest_accept_prefix_lengths<Label: Hash + Eq + Clone, A: DeterministicFiniteLabeledAutomaton<Label>>(
+fn longest_accept_prefix_lengths<
+    Label: Hash + Eq + Clone,
+    A: DeterministicFiniteLabeledAutomaton<Label>,
+>(
     automaton: &A,
     word: &[A::Input],
 ) -> HashMap<A::State, Vec<usize>> {
@@ -77,7 +80,10 @@ fn longest_accept_prefix_lengths<Label: Hash + Eq + Clone, A: DeterministicFinit
 /// time** after a token is consumed.
 ///
 /// [`initial_state`]: crate::general::DeterministicAutomaton::initial_state
-pub fn parse_by_longest_match<Label: Hash + Eq + Clone, A: DeterministicFiniteLabeledAutomaton<Label>>(
+pub fn parse_by_longest_match<
+    Label: Hash + Eq + Clone,
+    A: DeterministicFiniteLabeledAutomaton<Label>,
+>(
     automaton: &A,
     word: &[A::Input],
 ) -> Option<Vec<ParseResult<A::State>>> {

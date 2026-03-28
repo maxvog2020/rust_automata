@@ -4,7 +4,9 @@ use std::hash::Hash;
 use crate::labeled::arbitrary::LabeledAutomaton;
 
 // TODO: docs
-pub trait FiniteLabeledAutomaton<Label: Hash + Eq + Clone>: LabeledAutomaton<Label> + Sized {
+pub trait FiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
+    LabeledAutomaton<Label> + Sized
+{
     /// Return the automaton's alphabet as a set.
     fn alphabet_set(&self) -> HashSet<Self::Input> {
         self.alphabet().collect()

@@ -97,10 +97,17 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
     }
 
     // TODO: docs
-    pub fn map_labels<NewLabel: Hash + Eq + Clone>(&self, f: impl Fn(Label) -> NewLabel) -> SimpleLabeledNFA<NewLabel> {
+    pub fn map_labels<NewLabel: Hash + Eq + Clone>(
+        &self,
+        f: impl Fn(Label) -> NewLabel,
+    ) -> SimpleLabeledNFA<NewLabel> {
         SimpleLabeledNFA {
             initial: self.initial.clone(),
-            labels: self.labels.iter().map(|(&k, v)| (k, f(v.clone()))).collect(),
+            labels: self
+                .labels
+                .iter()
+                .map(|(&k, v)| (k, f(v.clone())))
+                .collect(),
             alphabet: self.alphabet.clone(),
             transitions: self.transitions.clone(),
         }
@@ -126,7 +133,7 @@ impl<Label: Hash + Eq + Clone> LabeledAutomaton<Label> for SimpleLabeledNFA<Labe
     fn is_initial_state(&self, state: Self::State) -> bool {
         self.initial.contains(&state)
     }
-    
+
     fn get_label(&self, state: Self::State) -> Option<Label> {
         self.labels.get(&state).cloned()
     }
@@ -141,18 +148,18 @@ impl<Label: Hash + Eq + Clone> FiniteLabeledAutomaton<Label> for SimpleLabeledNF
 impl<Label: Hash + Eq + Clone> NonDeterministicLabeledAutomaton<Label> for SimpleLabeledNFA<Label> {
     fn initial_states<'a>(&'a self) -> impl Iterator<Item = Self::State> + 'a
     where
-        Self::State: 'a 
+        Self::State: 'a,
     {
         self.initial.iter().copied()
     }
-    
+
     fn successors<'a>(
         &'a self,
         state: Self::State,
         input: &Self::Input,
     ) -> impl Iterator<Item = Self::State> + 'a
     where
-        Self::State: 'a 
+        Self::State: 'a,
     {
         self.transitions
             .get(state)
@@ -162,13 +169,15 @@ impl<Label: Hash + Eq + Clone> NonDeterministicLabeledAutomaton<Label> for Simpl
     }
 }
 
-impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label> for SimpleLabeledNFA<Label> {
+impl<Label: Hash + Eq + Clone> NonDeterministicFiniteLabeledAutomaton<Label>
+    for SimpleLabeledNFA<Label>
+{
     type CorrespondingDFA = SimpleLabeledDFA<Label>;
 
     fn to_dfa_by(&self, combine: impl Fn(Label, Label) -> Label) -> Self::CorrespondingDFA {
         self.to_simple_dfa(combine)
     }
-    
+
     fn union(&self, other: &Self) -> Self {
         let na = self.transitions.len();
         let shift = na;
@@ -241,7 +250,8 @@ impl<Label: Hash + Eq + Clone> SimpleLabeledNFA<Label> {
                     next_id += 1;
                     subset_to_id.insert(dest.clone(), id);
                     queue.push_back(dest.clone());
-                    if let Some(l) = Self::combined_label_for_subset(&dest, &self.labels, &combine) {
+                    if let Some(l) = Self::combined_label_for_subset(&dest, &self.labels, &combine)
+                    {
                         dfa_labels.insert(id, l);
                     }
                     id

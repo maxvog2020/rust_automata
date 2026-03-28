@@ -3,9 +3,9 @@ use std::iter::repeat_n;
 
 use automata_core::finite::NonDeterministicFiniteAutomaton;
 use automata_core::finite::parsing::parse_by_longest_match;
+use automata_core::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 use automata_core::simple::{SimpleDFA, SimpleNFA};
 use criterion::{Criterion, criterion_group, criterion_main};
-use automata_core::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 
 const LONG: usize = 1200;
 const LONG_ALT: usize = 1180;

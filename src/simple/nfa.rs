@@ -2,12 +2,12 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::Hash;
 
 use crate::arbitrary::Automaton;
-use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
-use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 use crate::arbitrary::NonDeterministicAutomaton;
 use crate::finite::FiniteAutomaton;
 use crate::finite::NonDeterministicFiniteAutomaton;
+use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
 use crate::labeled::arbitrary::LabeledAutomaton;
+use crate::labeled::finite::DeterministicFiniteLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
 use crate::labeled::simple::SimpleLabeledNFA;
 use crate::utility::{hashmap_of_unit_to_hashset, hashset_of_unit_to_hashmap};
@@ -76,7 +76,10 @@ impl SimpleNFA {
     }
 
     // TODO: docs
-    pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(&self, label: Label) -> SimpleLabeledNFA<Label> {
+    pub fn label_all_accepting_states_with<Label: Hash + Eq + Clone>(
+        &self,
+        label: Label,
+    ) -> SimpleLabeledNFA<Label> {
         self.map_labels(|_| label.clone())
     }
 }

@@ -1,11 +1,13 @@
 use std::hash::Hash;
 
 use crate::labeled::arbitrary::DeterministicLabeledAutomaton;
-use crate::labeled::finite::automaton::FiniteLabeledAutomaton;
 use crate::labeled::finite::NonDeterministicFiniteLabeledAutomaton;
+use crate::labeled::finite::automaton::FiniteLabeledAutomaton;
 
 // TODO: docs
-pub trait DeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>: DeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label> {
+pub trait DeterministicFiniteLabeledAutomaton<Label: Hash + Eq + Clone>:
+    DeterministicLabeledAutomaton<Label> + FiniteLabeledAutomaton<Label>
+{
     type CorrespondingNFA: NonDeterministicFiniteLabeledAutomaton<
             Label,
             State = Self::State,

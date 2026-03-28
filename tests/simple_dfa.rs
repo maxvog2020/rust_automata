@@ -1,8 +1,8 @@
 #[path = "common/mod.rs"]
 mod common;
 
-use automata_core::labeled::arbitrary::LabeledAutomaton;
 use automata_core::arbitrary::DeterministicAutomaton;
+use automata_core::labeled::arbitrary::LabeledAutomaton;
 use automata_core::labeled::finite::DeterministicFiniteLabeledAutomaton;
 use automata_core::simple::SimpleDFA;
 
